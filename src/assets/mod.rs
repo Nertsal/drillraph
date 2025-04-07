@@ -135,6 +135,7 @@ pub struct Sprites {
     pub sprint_button_pressed: PixelTexture,
     pub sprint_button_disabled: PixelTexture,
 
+    pub coal_ore: PixelTexture,
     pub iron_ore: PixelTexture,
     pub bronze_ore: PixelTexture,
     pub silver_ore: PixelTexture,

@@ -141,7 +141,7 @@ impl GameState {
             let color = match mineral.kind {
                 MineralKind::Resource(kind) => {
                     let texture = match kind {
-                        ResourceKind::Coal => continue, // &sprites.coal,
+                        ResourceKind::Coal => &sprites.coal_ore,
                         ResourceKind::Iron => &sprites.iron_ore,
                         ResourceKind::Bronze => &sprites.bronze_ore,
                         ResourceKind::Silver => &sprites.silver_ore,
