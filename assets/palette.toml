@@ -1,3 +1,4 @@
+default = "#FF00FF"
 background = "#08080D"
 ui_view = "#085159"
 game_view = "#5F4A8C"
@@ -6,3 +7,7 @@ drill = "#FEF375"
 vision_circle = "#FEF375"
 
 iron = "#EA795D"
+rock = "#444444"
+
+[resources]
+Iron = "#EA795D"

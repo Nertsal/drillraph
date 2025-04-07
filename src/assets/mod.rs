@@ -2,7 +2,10 @@ mod font;
 
 pub use self::font::*;
 
-use crate::{model::Config, prelude::Color};
+use crate::{
+    model::{Config, ResourceKind},
+    prelude::Color,
+};
 
 use std::path::PathBuf;
 
@@ -66,9 +69,10 @@ pub struct Sprites {
     pub border_thinner: PixelTexture,
 }
 
-#[derive(geng::asset::Load, Serialize, Deserialize, Debug, Clone, Copy)]
+#[derive(geng::asset::Load, Serialize, Deserialize, Debug, Clone)]
 #[load(serde = "toml")]
 pub struct Palette {
+    pub default: Color,
     pub background: Color,
     pub ui_view: Color,
     pub game_view: Color,
@@ -77,6 +81,8 @@ pub struct Palette {
     pub vision_circle: Color,
 
     pub iron: Color,
+    pub rock: Color,
+    pub resources: HashMap<ResourceKind, Color>,
 }
 
 #[derive(Clone)]

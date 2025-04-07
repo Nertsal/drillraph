@@ -13,6 +13,7 @@ pub type ResourceCount = i64;
 #[load(serde = "ron")]
 pub struct Config {
     pub drill_size: Coord,
+    pub map_width: Coord,
     pub minerals: HashMap<MineralKind, Vec<MineralConfig>>,
 }
 
@@ -47,9 +48,11 @@ pub enum ResourceKind {
 }
 
 pub struct Model {
+    pub config: Config,
     pub simulation_time: FloatTime,
 
     pub camera: Camera2d,
+    pub bounds: Aabb2<Coord>,
     pub ground_level: Coord,
     pub depth_generated: Coord,
 
@@ -62,6 +65,7 @@ impl Model {
     pub fn new(context: Context) -> Self {
         let config = &context.assets.config;
         let mut model = Self {
+            config: config.clone(),
             simulation_time: FloatTime::ZERO,
 
             camera: Camera2d {
@@ -69,6 +73,7 @@ impl Model {
                 rotation: Angle::ZERO,
                 fov: Camera2dFov::Vertical(15.0),
             },
+            bounds: Aabb2::ZERO,
             ground_level: Coord::ZERO,
             depth_generated: Coord::ZERO,
 

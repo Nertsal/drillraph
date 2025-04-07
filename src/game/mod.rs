@@ -52,6 +52,20 @@ impl GameState {
         );
         ugli::clear(framebuffer, Some(palette.background), None, None);
 
+        // Minerals
+        for mineral in &model.minerals {
+            let color = match mineral.kind {
+                MineralKind::Resource(kind) => palette
+                    .resources
+                    .get(&kind)
+                    .copied()
+                    .unwrap_or(palette.default),
+                MineralKind::Rock => palette.rock,
+            };
+            self.util
+                .draw_collider(&mineral.collider, color, &model.camera, framebuffer);
+        }
+
         // Drill
         self.util
             .draw_collider(&model.drill, palette.drill, &model.camera, framebuffer);

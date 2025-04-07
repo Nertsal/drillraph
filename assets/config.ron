@@ -1,7 +1,9 @@
 (
     drill_size: 0.3,
+    map_width: 5.0,
 
     minerals: {
+        Rock: [],
         Iron: [
             (
                 range: (-10, -3),
