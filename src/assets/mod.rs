@@ -92,7 +92,14 @@ pub struct Sprites {
     pub border_game: PixelTexture,
     pub border_shop: PixelTexture,
     pub connect_dot: PixelTexture,
+
     pub upgrade_node: PixelTexture,
+    pub battery_node: PixelTexture,
+
+    pub drill_iron: PixelTexture,
+    pub drill_bronze: PixelTexture,
+    pub drill_silver: PixelTexture,
+    pub drill_gold: PixelTexture,
 
     pub power_node: PixelTexture,
     pub power_button_normal: PixelTexture,
@@ -142,6 +149,9 @@ pub struct Palette {
 
     pub fuel_back: Color,
     pub fuel_front: Color,
+
+    pub battery_back: Color,
+    pub battery_front: Color,
 
     pub sprint_back: Color,
     pub sprint_front: Color,

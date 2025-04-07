@@ -15,6 +15,9 @@ fuel_front = "#CB62A8" # Color of the filled fuel bar
 sprint_back = "#8595A8" # Color of the unfilled sprint cooldown bar
 sprint_front = "#BAC6D4" # Color of the filled sprint cooldown bar
 
+battery_back = "#085159" # Color of the unfilled battery
+battery_front = "#3BD97F" # Color of the filled battery
+
 iron = "#EA795D" # Color of iron ore
 rock = "#444444" # Color of rocks
 
@@ -24,4 +27,8 @@ Iron = "#EA795D"
 
 # Color of each node connection type
 [nodes.connections]
+Normal = "#3E9B4B"
 Fuel = "#6079DC"
+Drill = "#EB7500"
+Modifier = "#E8A302"
+Upgrade = "#369E94"

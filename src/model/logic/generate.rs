@@ -22,6 +22,8 @@ impl Model {
                     cooldown.set_ratio(r32(0.0));
                 }
                 NodeKind::Upgrade => {}
+                NodeKind::Drill { .. } => {}
+                NodeKind::Battery => {}
             }
         }
 

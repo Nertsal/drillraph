@@ -300,6 +300,14 @@ impl GameState {
                 NodeKind::TurnLeft | NodeKind::TurnRight => &sprites.turn_node,
                 NodeKind::Sprint { .. } => &sprites.sprint_node,
                 NodeKind::Upgrade => &sprites.upgrade_node,
+                NodeKind::Drill { level, .. } => match level {
+                    ResourceKind::Coal | ResourceKind::Iron => &sprites.drill_iron,
+                    ResourceKind::Bronze => &sprites.drill_bronze,
+                    ResourceKind::Silver => &sprites.drill_silver,
+                    ResourceKind::Gold => &sprites.drill_gold,
+                    ResourceKind::Gem => &sprites.drill_gold,
+                },
+                NodeKind::Battery => &sprites.battery_node,
             };
             let position = node.position.map_bounds(to_screen);
             let position = self.util.draw_texture_pp(
@@ -525,6 +533,33 @@ impl GameState {
                     );
                 }
                 NodeKind::Upgrade => {}
+                NodeKind::Drill { power, .. } => {
+                    let cell_size = pixel_scale * 4.0;
+                    let position = position.top_right() - vec2(2.0, 4.0) * pixel_scale;
+                    let mut position = Aabb2::point(position)
+                        .extend_down(cell_size)
+                        .extend_left(cell_size);
+                    for _ in power.min()..power.value() {
+                        self.context.geng.draw2d().quad(
+                            framebuffer,
+                            &geng::PixelPerfectCamera,
+                            position,
+                            palette.battery_front,
+                        );
+                        position = position.translate(vec2(-5.0, 0.0) * pixel_scale);
+                    }
+                    for _ in power.value()..power.max() {
+                        self.util.draw_quad_outline(
+                            position,
+                            pixel_scale,
+                            palette.battery_back,
+                            &geng::PixelPerfectCamera,
+                            framebuffer,
+                        );
+                        position = position.translate(vec2(-5.0, 0.0) * pixel_scale);
+                    }
+                }
+                NodeKind::Battery => {}
             }
         }
     }

@@ -23,6 +23,50 @@ impl Model {
 
     pub fn launch_drill(&mut self) {
         let Phase::Setup = self.phase else { return };
+
+        // Check prerequisites
+
+        // 2. Drill has power
+        if !self.nodes.nodes.iter().all(|node| {
+            if let NodeKind::Drill { power, .. } = &node.kind {
+                power.is_max()
+            } else {
+                true
+            }
+        }) {
+            log::debug!("Launch impossible: drill does not have enough power");
+            return;
+        }
+
+        // 1. At least one fuel
+        {
+            let mut to_check = VecDeque::new();
+            to_check.push_front(0);
+            let mut checked = HashSet::new();
+            let mut has_fuel = false;
+            while let Some(i) = to_check.pop_front() {
+                if !checked.insert(i) {
+                    continue;
+                }
+                let Some(node) = self.nodes.nodes.get(i) else {
+                    return;
+                };
+                if let NodeKind::Fuel(..) = node.kind {
+                    has_fuel = true;
+                    break;
+                }
+                for conn in &node.connections {
+                    if let Some(to) = conn.connected_to {
+                        to_check.push_back(to);
+                    }
+                }
+            }
+            if !has_fuel {
+                log::debug!("Launch impossible: no fuel connected");
+                return;
+            }
+        }
+
         log::debug!("Launch the drill!");
         self.phase = Phase::Drill;
         self.drill.target_speed = self.config.drill_speed;
@@ -107,6 +151,7 @@ impl Model {
     fn update_nodes(&mut self, delta_time: FloatTime) {
         let bounds = self.nodes.bounds;
         let mut shop_i = 0;
+        let mut drill_i = 0;
         for (node_i, node) in self.nodes.nodes.iter_mut().enumerate() {
             let offset = (bounds.min - node.position.min).map(|x| x.max(Coord::ZERO));
             node.position = node.position.translate(offset);
@@ -115,7 +160,7 @@ impl Model {
 
             match node.kind {
                 NodeKind::Shop { .. } => shop_i = node_i,
-                // NodeKind::Drill
+                NodeKind::Drill { .. } => drill_i = node_i,
                 _ => {}
             }
 
@@ -129,7 +174,11 @@ impl Model {
         }
 
         // Count upgrades
-        let count_upgrades = |index: usize| -> usize {
+        enum CountNode {
+            Upgrade,
+            Battery,
+        }
+        let count_nodes = |index: usize, kind: CountNode| -> usize {
             let mut to_check = VecDeque::new();
             to_check.push_front(index);
             let mut checked = HashSet::new();
@@ -141,8 +190,10 @@ impl Model {
                 let Some(node) = self.nodes.nodes.get(i) else {
                     continue;
                 };
-                if let NodeKind::Upgrade = node.kind {
-                    upgrades += 1;
+                match (&kind, &node.kind) {
+                    (CountNode::Upgrade, NodeKind::Upgrade)
+                    | (CountNode::Battery, NodeKind::Battery) => upgrades += 1,
+                    _ => {}
                 }
                 for conn in &node.connections {
                     if let Some(to) = conn.connected_to {
@@ -153,12 +204,28 @@ impl Model {
             upgrades
         };
 
-        let shop_upgrades = count_upgrades(shop_i);
+        let shop_upgrades = count_nodes(shop_i, CountNode::Upgrade);
+        let drill_upgrades = count_nodes(drill_i, CountNode::Upgrade);
+        let drill_batteries = count_nodes(drill_i, CountNode::Battery);
 
         // Update shop level
         if let Some(node) = self.nodes.nodes.get_mut(shop_i) {
             if let NodeKind::Shop { level } = &mut node.kind {
                 *level = shop_upgrades;
+            }
+        }
+
+        // Update drill level
+        if let Some(node) = self.nodes.nodes.get_mut(drill_i) {
+            if let NodeKind::Drill { level, power } = &mut node.kind {
+                *level = match drill_upgrades {
+                    0 => ResourceKind::Iron,
+                    1 => ResourceKind::Bronze,
+                    2 => ResourceKind::Silver,
+                    _ => ResourceKind::Gold,
+                };
+                *power = Bounded::new(drill_batteries, 0..=drill_upgrades);
+                self.drill.drill_level = *level;
             }
         }
     }

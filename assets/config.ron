@@ -10,8 +10,8 @@
     sprint_duration: 3.0,
     sprint_cooldown: 5.0,
 
-    fuel_small_amount: 2.0,
-    fuel_normal_amount: 5.0,
+    fuel_small_amount: 5.0,
+    fuel_normal_amount: 10.0,
 
     minerals: {
         Rock: (

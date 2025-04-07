@@ -114,17 +114,28 @@ pub enum ConnectionKind {
     Normal,
     Fuel,
     Upgrade,
+    Drill,
+    Modifier,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum NodeKind {
     Power,
     Fuel(Bounded<Fuel>),
-    Shop { level: usize },
+    Shop {
+        level: usize,
+    },
+    Drill {
+        level: ResourceKind,
+        power: Bounded<usize>,
+    },
     TurnLeft,
     TurnRight,
-    Sprint { cooldown: Bounded<FloatTime> },
+    Sprint {
+        cooldown: Bounded<FloatTime>,
+    },
     Upgrade,
+    Battery,
 }
 
 #[derive(Debug)]
@@ -208,6 +219,45 @@ impl Model {
                             },
                             NodeConnection {
                                 offset: vec2(0.5, 0.0).as_r32(),
+                                kind: ConnectionKind::Drill,
+                                connected_to: None,
+                            },
+                        ],
+                    },
+                    Node {
+                        position: Aabb2::point(vec2(3.0, -2.0))
+                            .extend_right(2.0)
+                            .extend_down(1.0)
+                            .as_r32(),
+                        kind: NodeKind::Fuel(Bounded::new_max(config.fuel_small_amount)),
+                        connections: vec![NodeConnection {
+                            offset: vec2(0.0, 0.5).as_r32(),
+                            kind: ConnectionKind::Fuel,
+                            connected_to: None,
+                        }],
+                    },
+                    Node {
+                        position: Aabb2::point(vec2(2.0, -6.0))
+                            .extend_right(2.0)
+                            .extend_down(1.0)
+                            .as_r32(),
+                        kind: NodeKind::Drill {
+                            level: ResourceKind::Iron,
+                            power: Bounded::new_zero(0),
+                        },
+                        connections: vec![
+                            NodeConnection {
+                                offset: vec2(0.0, 0.5).as_r32(),
+                                kind: ConnectionKind::Drill,
+                                connected_to: None,
+                            },
+                            NodeConnection {
+                                offset: vec2(0.5, 1.0).as_r32(),
+                                kind: ConnectionKind::Upgrade,
+                                connected_to: None,
+                            },
+                            NodeConnection {
+                                offset: vec2(1.0, 0.5).as_r32(),
                                 kind: ConnectionKind::Normal,
                                 connected_to: None,
                             },
@@ -220,18 +270,6 @@ impl Model {
                             .as_r32(),
                         kind: NodeKind::Shop { level: 0 },
                         connections: vec![],
-                    },
-                    Node {
-                        position: Aabb2::point(vec2(3.0, -4.0))
-                            .extend_right(2.0)
-                            .extend_down(1.0)
-                            .as_r32(),
-                        kind: NodeKind::Fuel(Bounded::new_max(config.fuel_normal_amount)),
-                        connections: vec![NodeConnection {
-                            offset: vec2(0.0, 0.5).as_r32(),
-                            kind: ConnectionKind::Fuel,
-                            connected_to: None,
-                        }],
                     },
                 ],
             },
