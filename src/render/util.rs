@@ -60,6 +60,7 @@ impl UtilRender {
         align: vec2<f32>,
         rotation: Angle<f32>,
         pixel_scale: f32,
+        color: Color,
         camera: &impl geng::AbstractCamera2d,
         framebuffer: &mut ugli::Framebuffer,
     ) -> Aabb2<f32> {
@@ -73,7 +74,7 @@ impl UtilRender {
         self.context.geng.draw2d().draw2d(
             framebuffer,
             camera,
-            &draw2d::TexturedQuad::unit(draw.texture).transform(
+            &draw2d::TexturedQuad::unit_colored(draw.texture, color).transform(
                 mat3::translate(draw.target.center())
                     * mat3::rotate(rotation)
                     * mat3::scale(draw.target.size() / 2.0),

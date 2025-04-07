@@ -205,6 +205,7 @@ impl GameState {
             vec2(1.0, 0.5),
             Angle::ZERO,
             pixel_scale,
+            Color::WHITE,
             &geng::PixelPerfectCamera,
             framebuffer,
         );
@@ -259,6 +260,7 @@ impl GameState {
                 vec2(0.5, 0.5),
                 Angle::ZERO,
                 pixel_scale,
+                Color::WHITE,
                 &geng::PixelPerfectCamera,
                 framebuffer,
             );
@@ -288,13 +290,15 @@ impl GameState {
                     .get(&connection.color)
                     .copied()
                     .unwrap_or(palette.default);
-                self.util.draw_circle_cut(
-                    framebuffer,
-                    &nodes.camera,
-                    mat3::translate((node.position.align_pos(connection.offset)).as_f32())
-                        * mat3::scale_uniform(0.1),
+                self.util.draw_texture_pp(
+                    &sprites.connect_dot,
+                    position.align_pos(connection.offset.as_f32()),
+                    vec2(0.5, 0.5),
+                    Angle::ZERO,
+                    pixel_scale,
                     color,
-                    0.0,
+                    &geng::PixelPerfectCamera,
+                    framebuffer,
                 );
 
                 let mut draw_connection = |nodes: &Nodes| -> Option<()> {
@@ -353,6 +357,7 @@ impl GameState {
                         vec2(0.5, 0.5),
                         Angle::ZERO,
                         pixel_scale,
+                        Color::WHITE,
                         &geng::PixelPerfectCamera,
                         framebuffer,
                     );
@@ -383,6 +388,7 @@ impl GameState {
                         vec2(0.5, 0.5),
                         Angle::ZERO,
                         pixel_scale,
+                        Color::WHITE,
                         &geng::PixelPerfectCamera,
                         framebuffer,
                     );
