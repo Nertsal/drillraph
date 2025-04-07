@@ -82,6 +82,7 @@ pub struct Fonts {
 
 #[derive(geng::asset::Load)]
 pub struct Sprites {
+    pub drill: PixelTexture,
     pub coin: PixelTexture,
     pub fuel_small_node: PixelTexture,
     pub fuel_normal_node: PixelTexture,
