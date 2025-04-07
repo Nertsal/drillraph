@@ -69,7 +69,7 @@ pub struct NodeConnection {
     pub connected_to: Option<usize>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Hash)]
 pub enum ConnectionColor {
     Blue,
 }

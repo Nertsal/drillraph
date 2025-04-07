@@ -71,8 +71,12 @@ pub struct Shaders {
 #[derive(geng::asset::Load)]
 pub struct Fonts {
     pub default: Rc<Font>,
-    pub revolver: Rc<Font>,
+    #[load(path = "DeadRevolverGame.ttf")]
+    pub revolver_game: Rc<Font>,
+    #[load(path = "DeadRevolverDisplay.ttf")]
     pub revolver_display: Rc<Font>,
+    #[load(path = "DeadRevolverArcadeOutlined.ttf")]
+    pub revolver_arcade: Rc<Font>,
 }
 
 #[derive(geng::asset::Load)]

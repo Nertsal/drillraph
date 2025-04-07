@@ -251,6 +251,7 @@ impl UtilRender {
         &self,
         text: impl AsRef<str>,
         position: vec2<impl Float>,
+        font: &Font,
         options: TextRenderOptions,
         camera: &impl geng::AbstractCamera2d,
         framebuffer: &mut ugli::Framebuffer,
@@ -259,6 +260,7 @@ impl UtilRender {
             text,
             position,
             0.0,
+            font,
             options,
             ugli::DrawParameters {
                 blend_mode: Some(ugli::BlendMode::straight_alpha()),
@@ -275,13 +277,13 @@ impl UtilRender {
         text: impl AsRef<str>,
         position: vec2<impl Float>,
         z_index: f32,
+        font: &Font,
         mut options: TextRenderOptions,
         params: ugli::DrawParameters,
         camera: &impl geng::AbstractCamera2d,
         framebuffer: &mut ugli::Framebuffer,
     ) {
         let text = text.as_ref();
-        let font = &self.context.assets.fonts.revolver;
         let framebuffer_size = framebuffer.size().as_f32();
 
         let position = position.map(Float::as_f32);

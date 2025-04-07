@@ -154,13 +154,17 @@ impl GameState {
 
     fn draw_game_ui(&mut self, pixel_scale: f32, framebuffer: &mut ugli::Framebuffer) {
         let font_size = 25.0 * pixel_scale;
+        let palette = &self.context.assets.palette;
 
         // Depth meter
         let depth = -self.model.drill.collider.position.y.as_f32().ceil() as i64;
         self.util.draw_text(
-            format!("Depth: {:3}m", depth),
+            format!("DEPTH: {:3}m", depth),
             self.game_view.align_pos(vec2(0.95, 0.95)),
-            TextRenderOptions::new(font_size).align(vec2(1.0, 1.0)),
+            &self.context.assets.fonts.revolver_display,
+            TextRenderOptions::new(font_size)
+                .align(vec2(1.0, 1.0))
+                .color(palette.game_view),
             &geng::PixelPerfectCamera,
             framebuffer,
         );
@@ -349,24 +353,34 @@ impl GameState {
 
         match drag.target {
             DragTarget::Node { .. } => {}
-            DragTarget::NodeConnection { node, conn } => {
+            DragTarget::NodeConnection {
+                node: node_i,
+                conn: conn_i,
+            } => {
                 if !matches!(self.model.phase, Phase::Setup) {
                     return;
                 }
                 if let Some(DragTarget::NodeConnection {
-                    node: to_node,
-                    conn: to_conn,
+                    node: to_node_i,
+                    conn: to_conn_i,
                 }) = self.hovering.clone()
                 {
                     let nodes = &mut self.model.nodes;
-                    if let Some(node) = nodes.nodes.get_mut(node) {
-                        if let Some(conn) = node.connections.get_mut(conn) {
-                            conn.connected_to = Some(to_node);
-                        }
-                    }
-                    if let Some(to_node) = nodes.nodes.get_mut(to_node) {
-                        if let Some(to_conn) = to_node.connections.get_mut(to_conn) {
-                            to_conn.connected_to = Some(node);
+                    if let Some(node) = nodes.nodes.get_mut(node_i) {
+                        if let Some(conn) = node.connections.get_mut(conn_i) {
+                            let color = conn.color;
+                            if let Some(to_node) = nodes.nodes.get_mut(to_node_i) {
+                                if let Some(to_conn) = to_node.connections.get_mut(to_conn_i) {
+                                    if to_conn.color == color {
+                                        to_conn.connected_to = Some(node_i);
+                                        if let Some(node) = nodes.nodes.get_mut(node_i) {
+                                            if let Some(conn) = node.connections.get_mut(conn_i) {
+                                                conn.connected_to = Some(to_node_i);
+                                            }
+                                        }
+                                    }
+                                }
+                            }
                         }
                     }
                 }
