@@ -68,6 +68,7 @@ pub struct Shaders {
 
 #[derive(geng::asset::Load)]
 pub struct Sprites {
+    pub fill_thinner: PixelTexture,
     pub border_thinner: PixelTexture,
 }
 

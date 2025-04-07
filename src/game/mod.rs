@@ -222,6 +222,33 @@ impl GameState {
                     }
                 }
             }
+
+            if let NodeKind::Fuel(fuel) = &node.kind {
+                // Fuel bar
+                let pos = node
+                    .position
+                    .as_f32()
+                    .extend_uniform(-0.1)
+                    .cut_top(0.15)
+                    .as_r32();
+                let mut pos = Aabb2::from_corners(to_screen(pos.min), to_screen(pos.max));
+                self.util.draw_nine_slice(
+                    pos,
+                    color,
+                    &sprites.border_thinner,
+                    pixel_scale,
+                    &geng::PixelPerfectCamera,
+                    framebuffer,
+                );
+                self.util.draw_nine_slice(
+                    pos.split_left(fuel.get_ratio().as_f32()),
+                    color,
+                    &sprites.fill_thinner,
+                    pixel_scale,
+                    &geng::PixelPerfectCamera,
+                    framebuffer,
+                );
+            }
         }
     }
 
