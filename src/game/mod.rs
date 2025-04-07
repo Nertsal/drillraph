@@ -312,17 +312,26 @@ impl GameState {
                     return;
                 }
             }
-            DragTarget::NodeConnection { node, conn } => {
+            DragTarget::NodeConnection { node: node_i, conn } => {
                 if !matches!(self.model.phase, Phase::Setup) {
                     return;
                 }
-                let Some(node) = self.model.nodes.nodes.get_mut(node) else {
+                let Some(node) = self.model.nodes.nodes.get_mut(node_i) else {
                     return;
                 };
                 let Some(conn) = node.connections.get_mut(conn) else {
                     return;
                 };
-                conn.connected_to = None;
+                // Remove connection
+                if let Some(i) = conn.connected_to.take() {
+                    if let Some(node) = self.model.nodes.nodes.get_mut(i) {
+                        for conn in &mut node.connections {
+                            if conn.connected_to == Some(node_i) {
+                                conn.connected_to = None;
+                            }
+                        }
+                    }
+                }
             }
         }
 
