@@ -3,6 +3,7 @@ use super::*;
 impl Model {
     pub fn generate_level(&mut self) {
         log::debug!("Generating next level..");
+        let mut rng = thread_rng();
 
         // Reset drill
         self.drill.collider.position = vec2(Coord::ZERO, self.ground_level);
@@ -29,6 +30,30 @@ impl Model {
         self.minerals.clear();
         self.depth_generated = self.ground_level;
         self.spawn_depths();
+
+        // Update shop
+        let shop_level = self
+            .nodes
+            .nodes
+            .iter()
+            .find_map(|node| {
+                if let NodeKind::Shop { level } = node.kind {
+                    Some(level)
+                } else {
+                    None
+                }
+            })
+            .unwrap_or(0);
+        let shop_config = match shop_level {
+            0 => &self.config.shop_0,
+            1 => &self.config.shop_1,
+            _ => &self.config.shop_2,
+        };
+        self.shop = shop_config
+            .items
+            .choose_multiple(&mut rng, shop_config.slots)
+            .cloned()
+            .collect();
     }
 
     pub fn spawn_depths(&mut self) {

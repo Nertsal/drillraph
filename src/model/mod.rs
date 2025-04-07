@@ -15,11 +15,38 @@ pub type Fuel = R32;
 #[derive(geng::asset::Load, Serialize, Deserialize, Debug, Clone)]
 #[load(serde = "ron")]
 pub struct Config {
+    pub map_width: Coord,
+
     pub drill_size: Coord,
     pub drill_speed: Coord,
     pub drill_acceleration: Coord,
-    pub map_width: Coord,
+
+    pub fuel_small_amount: Fuel,
+    pub fuel_normal_amount: Fuel,
+
     pub minerals: HashMap<MineralKind, MineralConfig>,
+
+    pub shop_0: ShopConfig,
+    pub shop_1: ShopConfig,
+    pub shop_2: ShopConfig,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct ShopConfig {
+    pub slots: usize,
+    pub items: Vec<ShopItem>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct ShopItem {
+    pub cost: Money,
+    pub node: ShopNode,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub enum ShopNode {
+    FuelSmall,
+    Fuel,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -117,6 +144,7 @@ pub struct Model {
     pub nodes: Nodes,
 
     pub money: Money,
+    pub shop: Vec<ShopItem>,
     pub drill: Drill,
     pub vision_radius: Coord,
     pub minerals: Vec<Mineral>,
@@ -177,7 +205,7 @@ impl Model {
                             .extend_right(2.0)
                             .extend_down(1.0)
                             .as_r32(),
-                        kind: NodeKind::Fuel(Bounded::new_max(r32(5.0))),
+                        kind: NodeKind::Fuel(Bounded::new_max(config.fuel_normal_amount)),
                         connections: vec![NodeConnection {
                             offset: vec2(0.0, 0.5).as_r32(),
                             color: ConnectionColor::Blue,
@@ -188,6 +216,7 @@ impl Model {
             },
 
             money: 0,
+            shop: Vec::new(),
             drill: Drill {
                 collider: Collider::circle(vec2::ZERO, config.drill_size),
                 drill_level: ResourceKind::Iron,

@@ -89,6 +89,7 @@ pub struct Sprites {
     pub border_thinner: PixelTexture,
     pub border_ui: PixelTexture,
     pub border_game: PixelTexture,
+    pub border_shop: PixelTexture,
     pub connect_dot: PixelTexture,
 
     pub power_node: PixelTexture,

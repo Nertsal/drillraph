@@ -33,9 +33,11 @@ pub struct GameState {
     hovering: Option<DragTarget>,
     drag: Option<Drag>,
 
+    show_shop: bool,
     screen: Aabb2<f32>,
     ui_view: Aabb2<f32>,
     game_view: Aabb2<f32>,
+    shop_view: Aabb2<f32>,
 }
 
 #[derive(Debug)]
@@ -68,9 +70,11 @@ impl GameState {
             cursor_ui_pos: vec2::ZERO,
             cursor_game_pos: vec2::ZERO,
 
+            show_shop: false,
             screen: Aabb2::ZERO,
             ui_view: Aabb2::ZERO,
             game_view: Aabb2::ZERO,
+            shop_view: Aabb2::ZERO,
 
             util: UtilRender::new(context.clone()),
             ui_texture: geng_utils::texture::new_texture(context.geng.ugli(), vec2(1, 1)),
@@ -80,12 +84,18 @@ impl GameState {
         }
     }
 
-    fn layout(&mut self, framebuffer_size: vec2<usize>) {
+    fn layout(&mut self, pixel_scale: f32, framebuffer_size: vec2<usize>) {
         self.screen = Aabb2::ZERO.extend_positive(framebuffer_size.as_f32());
         let padding = 20.0;
         self.game_view = self.screen.extend_uniform(-padding);
         self.ui_view = self.game_view.split_left(0.66).extend_right(-padding / 2.0);
         self.game_view = self.game_view.extend_left(-padding / 2.0);
+
+        let shop_size = 4.0 * 50.0 * pixel_scale;
+        self.shop_view = self
+            .ui_view
+            .with_width(shop_size, 0.5)
+            .with_height(shop_size, 0.5);
     }
 
     fn draw_game(&mut self, pixel_scale: f32) {
@@ -420,8 +430,25 @@ impl GameState {
         }
     }
 
+    fn draw_shop(&mut self, pixel_scale: f32, framebuffer: &mut ugli::Framebuffer) {
+        if !self.show_shop {
+            return;
+        }
+
+        let sprites = &self.context.assets.sprites;
+
+        self.util.draw_nine_slice(
+            self.shop_view,
+            Color::WHITE,
+            &sprites.border_shop,
+            pixel_scale,
+            &geng::PixelPerfectCamera,
+            framebuffer,
+        );
+    }
+
     fn toggle_shop(&mut self) {
-        // TODO
+        self.show_shop = !self.show_shop;
     }
 
     fn mouse_down(&mut self) {
@@ -545,6 +572,10 @@ impl GameState {
     fn update_hover(&mut self) {
         self.hovering = None;
 
+        if self.shop_view.contains(self.cursor_screen_pos.as_f32()) {
+            return;
+        }
+
         for (node_i, node) in self.model.nodes.nodes.iter().enumerate() {
             for (conn_i, connection) in node.connections.iter().enumerate() {
                 let delta = node.position.align_pos(connection.offset) - self.cursor_ui_pos;
@@ -613,10 +644,9 @@ impl geng::State for GameState {
     }
 
     fn draw(&mut self, framebuffer: &mut ugli::Framebuffer) {
-        self.layout(framebuffer.size());
-
         let pixel_scale = framebuffer.size().as_f32() / crate::TARGET_SCREEN_SIZE.as_f32();
         let pixel_scale = pixel_scale.x.min(pixel_scale.y).floor().max(0.25);
+        self.layout(pixel_scale, framebuffer.size());
 
         let context = self.context.clone();
         let palette = &context.assets.palette;
@@ -682,5 +712,6 @@ impl geng::State for GameState {
         }
 
         self.draw_game_ui(pixel_scale, framebuffer);
+        self.draw_shop(pixel_scale, framebuffer);
     }
 }

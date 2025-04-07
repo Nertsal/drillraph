@@ -1,8 +1,12 @@
 (
+    map_width: 10.0,
+
     drill_size: 0.3,
     drill_speed: 2.5,
     drill_acceleration: 3.0,
-    map_width: 10.0,
+
+    fuel_small_amount: 2.0,
+    fuel_normal_amount: 5.0,
 
     minerals: {
         Rock: (
@@ -32,4 +36,19 @@
             ],
         ),
     },
+
+    shop_0: (
+        slots: 2,
+        items: []
+    ),
+
+    shop_1: (
+        slots: 3,
+        items: []
+    ),
+
+    shop_2: (
+        slots: 4,
+        items: []
+    ),
 )

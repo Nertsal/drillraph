@@ -13,6 +13,7 @@ impl Model {
                 self.move_drill(delta_time);
                 self.collide_drill(delta_time);
                 self.use_fuel(delta_time);
+                self.spawn_depths();
             }
         }
 
@@ -25,6 +26,28 @@ impl Model {
         log::debug!("Launch the drill!");
         self.phase = Phase::Drill;
         self.drill.target_speed = self.config.drill_speed;
+    }
+
+    pub fn purchase_item(&mut self, index: usize) {
+        let Phase::Setup = self.phase else { return };
+
+        if self.shop.len() <= index {
+            return;
+        }
+        let item = self.shop.remove(index);
+
+        let kind = match item.node {
+            ShopNode::FuelSmall => NodeKind::Fuel(Bounded::new_max(self.config.fuel_small_amount)),
+            ShopNode::Fuel => NodeKind::Fuel(Bounded::new_max(self.config.fuel_normal_amount)),
+        };
+
+        let position = self.nodes.bounds.center();
+        let position = Aabb2::point(position).extend_symmetric(vec2(1.0, 1.0).as_r32() / r32(2.0));
+        self.nodes.nodes.push(Node {
+            position,
+            kind,
+            connections: vec![],
+        });
     }
 
     fn end_drill_phase(&mut self) {
