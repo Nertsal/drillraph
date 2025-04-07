@@ -608,7 +608,7 @@ impl GameState {
                 Some(DragTarget::Shop { item }) if item == index
             );
 
-            let texture = match item.node {
+            let texture = match item.item.node {
                 ShopNode::FuelSmall => &sprites.fuel_small_node,
                 ShopNode::Fuel => &sprites.fuel_normal_node,
             };
@@ -655,7 +655,7 @@ impl GameState {
                 framebuffer,
             );
             self.util.draw_text(
-                format!("{}", item.cost),
+                format!("{}", item.item.cost),
                 position.align_pos(vec2(0.0, 0.5)),
                 &self.context.assets.fonts.revolver_game,
                 TextRenderOptions::new(coin.size().y as f32 * pixel_scale)

@@ -106,14 +106,22 @@ impl Model {
             return;
         };
 
-        if item.cost > self.money {
+        if item.item.cost > self.money {
             return; // Cannot afford
         }
 
         let item = self.shop.remove(index);
-        self.money -= item.cost;
+        self.money -= item.item.cost;
+        let shop = match item.tier {
+            0 => &mut self.config.shop_0,
+            1 => &mut self.config.shop_1,
+            _ => &mut self.config.shop_2,
+        };
+        if let Some(item) = shop.items.get_mut(item.index) {
+            item.sold_out = true;
+        }
 
-        let kind = match item.node {
+        let kind = match item.item.node {
             ShopNode::FuelSmall => NodeKind::Fuel(Bounded::new_max(self.config.fuel_small_amount)),
             ShopNode::Fuel => NodeKind::Fuel(Bounded::new_max(self.config.fuel_normal_amount)),
         };
@@ -132,7 +140,7 @@ impl Model {
         self.nodes.nodes.push(Node {
             position,
             kind,
-            connections: match item.node {
+            connections: match item.item.node {
                 ShopNode::FuelSmall | ShopNode::Fuel => {
                     mk_cons(&[((0.0, 0.5), ConnectionKind::Fuel)])
                 }

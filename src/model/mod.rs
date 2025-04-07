@@ -54,6 +54,15 @@ pub struct ShopConfig {
 pub struct ShopItem {
     pub cost: Money,
     pub node: ShopNode,
+    #[serde(default)]
+    pub sold_out: bool,
+}
+
+#[derive(Debug, Clone)]
+pub struct ShopItemTracked {
+    pub item: ShopItem,
+    pub tier: usize,
+    pub index: usize,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -189,7 +198,7 @@ pub struct Model {
     pub nodes: Nodes,
 
     pub money: Money,
-    pub shop: Vec<ShopItem>,
+    pub shop: Vec<ShopItemTracked>,
     pub drill: Drill,
     pub minerals: Vec<Mineral>,
 

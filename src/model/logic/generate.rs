@@ -53,16 +53,56 @@ impl Model {
                 }
             })
             .unwrap_or(0);
+        let mut items = vec![];
+        items.extend(
+            self.config
+                .shop_0
+                .items
+                .iter()
+                .enumerate()
+                .map(|(i, item)| ShopItemTracked {
+                    item: item.clone(),
+                    tier: 0,
+                    index: i,
+                }),
+        );
+        if shop_level >= 1 {
+            items.extend(
+                self.config
+                    .shop_1
+                    .items
+                    .iter()
+                    .enumerate()
+                    .map(|(i, item)| ShopItemTracked {
+                        item: item.clone(),
+                        tier: 1,
+                        index: i,
+                    }),
+            );
+        }
+        if shop_level >= 2 {
+            items.extend(
+                self.config
+                    .shop_2
+                    .items
+                    .iter()
+                    .enumerate()
+                    .map(|(i, item)| ShopItemTracked {
+                        item: item.clone(),
+                        tier: 2,
+                        index: i,
+                    }),
+            );
+        }
         let shop_config = match shop_level {
             0 => &self.config.shop_0,
             1 => &self.config.shop_1,
             _ => &self.config.shop_2,
         };
-        self.shop = shop_config
-            .items
-            .choose_multiple(&mut rng, shop_config.slots)
-            .cloned()
-            .collect();
+        self.shop = items
+            .into_iter()
+            .filter(|item| !item.item.sold_out)
+            .choose_multiple(&mut rng, shop_config.slots);
     }
 
     pub fn spawn_depths(&mut self) {
