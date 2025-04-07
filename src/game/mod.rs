@@ -233,7 +233,7 @@ impl GameState {
             self.context.geng.ugli(),
         );
 
-        let nodes = &self.model.nodes;
+        let nodes = &mut self.model.nodes;
         let palette = &self.context.assets.palette;
         let sprites = &self.context.assets.sprites;
 
@@ -242,6 +242,28 @@ impl GameState {
         let to_screen = |pos: vec2<Coord>| {
             crate::util::world_to_screen(&nodes.camera, ui_size.as_f32(), pos.as_f32())
         };
+        let to_world =
+            |pos: vec2<f32>| nodes.camera.screen_to_world(ui_size.as_f32(), pos).as_r32();
+
+        for node in &mut nodes.nodes {
+            // Body
+            let texture = match &node.kind {
+                NodeKind::Power => &sprites.power_node,
+                NodeKind::Fuel(..) => &sprites.fuel_normal_node,
+            };
+            let position = node.position.map_bounds(to_screen);
+            let position = self.util.draw_texture_pp(
+                texture,
+                position.center(),
+                vec2(0.5, 0.5),
+                Angle::ZERO,
+                pixel_scale,
+                &geng::PixelPerfectCamera,
+                framebuffer,
+            );
+            node.position = Aabb2::point(node.position.center())
+                .extend_symmetric(position.map_bounds(to_world).size() / r32(2.0));
+        }
 
         for (node_i, node) in nodes.nodes.iter().enumerate() {
             let is_hovered = matches!(
@@ -255,37 +277,7 @@ impl GameState {
                     .window()
                     .is_button_pressed(geng::MouseButton::Left);
 
-            // Body
-            let texture = match &node.kind {
-                NodeKind::Power => &sprites.power_node,
-                NodeKind::Fuel(..) => &sprites.fuel_normal_node,
-            };
-            let position =
-                Aabb2::from_corners(to_screen(node.position.min), to_screen(node.position.max));
-            self.util.draw_texture_pp(
-                texture,
-                position.center(),
-                vec2(0.5, 0.5),
-                Angle::ZERO,
-                pixel_scale,
-                &geng::PixelPerfectCamera,
-                framebuffer,
-            );
-
-            // let color = match &node.kind {
-            //     NodeKind::Power => palette.nodes.power,
-            //     NodeKind::Fuel(..) => palette.nodes.fuel,
-            // };
-            // let position =
-            //     Aabb2::from_corners(to_screen(node.position.min), to_screen(node.position.max));
-            // self.util.draw_nine_slice(
-            //     position,
-            //     color,
-            //     &sprites.border_thinner,
-            //     pixel_scale,
-            //     &geng::PixelPerfectCamera,
-            //     framebuffer,
-            // );
+            let position = node.position.map_bounds(to_screen);
 
             // Connections
             for (conn_i, connection) in node.connections.iter().enumerate() {
@@ -298,24 +290,24 @@ impl GameState {
                 self.util.draw_circle_cut(
                     framebuffer,
                     &nodes.camera,
-                    mat3::translate((node.position.center() + connection.offset).as_f32())
+                    mat3::translate((node.position.align_pos(connection.offset)).as_f32())
                         * mat3::scale_uniform(0.1),
                     color,
                     0.0,
                 );
 
-                let mut draw_connection = || -> Option<()> {
+                let mut draw_connection = |nodes: &Nodes| -> Option<()> {
                     let node_j = connection.connected_to?;
                     if node_i > node_j {
                         return None;
                     }
-                    let from = node.position.center() + connection.offset;
+                    let from = node.position.align_pos(connection.offset);
                     let to_node = nodes.nodes.get(node_j)?;
                     let to_conn = to_node
                         .connections
                         .iter()
                         .find(|conn| conn.connected_to == Some(node_i))?;
-                    let to = to_node.position.center() + to_conn.offset;
+                    let to = to_node.position.align_pos(to_conn.offset);
                     self.context.geng.draw2d().draw2d(
                         framebuffer,
                         &nodes.camera,
@@ -324,7 +316,7 @@ impl GameState {
 
                     Some(())
                 };
-                draw_connection();
+                draw_connection(nodes);
 
                 if let Some(DragTarget::NodeConnection {
                     node: drag_node,
@@ -332,7 +324,7 @@ impl GameState {
                 }) = self.drag.as_ref().map(|drag| &drag.target)
                 {
                     if *drag_node == node_i && *drag_conn == conn_i {
-                        let from = node.position.center() + connection.offset;
+                        let from = node.position.align_pos(connection.offset);
                         let to = self.cursor_ui_pos;
                         self.context.geng.draw2d().draw2d(
                             framebuffer,
@@ -509,7 +501,7 @@ impl GameState {
 
         for (node_i, node) in self.model.nodes.nodes.iter().enumerate() {
             for (conn_i, connection) in node.connections.iter().enumerate() {
-                let delta = node.position.center() + connection.offset - self.cursor_ui_pos;
+                let delta = node.position.align_pos(connection.offset) - self.cursor_ui_pos;
                 if delta.len() < r32(0.2) {
                     self.hovering = Some(DragTarget::NodeConnection {
                         node: node_i,

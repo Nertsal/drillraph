@@ -154,7 +154,7 @@ impl Model {
                         position: Aabb2::ZERO.extend_right(1.0).extend_down(1.0).as_r32(),
                         kind: NodeKind::Power,
                         connections: vec![NodeConnection {
-                            offset: vec2(0.5, 0.0).as_r32(),
+                            offset: vec2(1.0, 0.5).as_r32(),
                             color: ConnectionColor::Blue,
                             connected_to: None,
                         }],
@@ -166,7 +166,7 @@ impl Model {
                             .as_r32(),
                         kind: NodeKind::Fuel(Bounded::new_max(r32(5.0))),
                         connections: vec![NodeConnection {
-                            offset: vec2(-1.0, 0.0).as_r32(),
+                            offset: vec2(0.0, 0.5).as_r32(),
                             color: ConnectionColor::Blue,
                             connected_to: None,
                         }],
