@@ -52,6 +52,7 @@ pub struct Assets {
     pub shaders: Shaders,
     pub sprites: Sprites,
     pub config: Config,
+    pub fonts: Fonts,
 }
 
 impl Assets {
@@ -65,6 +66,11 @@ pub struct Shaders {
     pub texture: Rc<ugli::Program>,
     pub ellipse: Rc<ugli::Program>,
     pub masked: Rc<ugli::Program>,
+}
+
+#[derive(geng::asset::Load)]
+pub struct Fonts {
+    pub default: Rc<Font>,
 }
 
 #[derive(geng::asset::Load)]

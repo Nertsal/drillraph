@@ -1,7 +1,10 @@
 use crate::{
     model::*,
     prelude::*,
-    render::{mask::MaskedRender, util::UtilRender},
+    render::{
+        mask::MaskedRender,
+        util::{TextRenderOptions, UtilRender},
+    },
     ui::layout::*,
 };
 
@@ -146,6 +149,20 @@ impl GameState {
             model.vision_radius.as_f32() * 0.97,
             model.vision_radius.as_f32(),
             palette.vision_circle,
+        );
+    }
+
+    fn draw_game_ui(&mut self, pixel_scale: f32, framebuffer: &mut ugli::Framebuffer) {
+        let font_size = 25.0 * pixel_scale;
+
+        // Depth meter
+        let depth = -self.model.drill.collider.position.y.as_f32().ceil() as i64;
+        self.util.draw_text(
+            format!("Depth: {:3}m", depth),
+            self.game_view.align_pos(vec2(0.95, 0.95)),
+            TextRenderOptions::new(font_size).align(vec2(1.0, 1.0)),
+            &geng::PixelPerfectCamera,
+            framebuffer,
         );
     }
 
@@ -481,5 +498,7 @@ impl geng::State for GameState {
             &geng::PixelPerfectCamera,
             framebuffer,
         );
+
+        self.draw_game_ui(pixel_scale, framebuffer);
     }
 }

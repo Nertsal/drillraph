@@ -246,4 +246,80 @@ impl UtilRender {
             },
         );
     }
+
+    pub fn draw_text(
+        &self,
+        text: impl AsRef<str>,
+        position: vec2<impl Float>,
+        options: TextRenderOptions,
+        camera: &impl geng::AbstractCamera2d,
+        framebuffer: &mut ugli::Framebuffer,
+    ) {
+        self.draw_text_with(
+            text,
+            position,
+            0.0,
+            options,
+            ugli::DrawParameters {
+                blend_mode: Some(ugli::BlendMode::straight_alpha()),
+                ..default()
+            },
+            camera,
+            framebuffer,
+        )
+    }
+
+    #[allow(clippy::too_many_arguments)]
+    pub fn draw_text_with(
+        &self,
+        text: impl AsRef<str>,
+        position: vec2<impl Float>,
+        z_index: f32,
+        mut options: TextRenderOptions,
+        params: ugli::DrawParameters,
+        camera: &impl geng::AbstractCamera2d,
+        framebuffer: &mut ugli::Framebuffer,
+    ) {
+        let text = text.as_ref();
+        let font = &self.context.assets.fonts.default;
+        let framebuffer_size = framebuffer.size().as_f32();
+
+        let position = position.map(Float::as_f32);
+        let position = crate::util::world_to_screen(camera, framebuffer_size, position);
+
+        let scale = crate::util::world_to_screen(
+            camera,
+            framebuffer_size,
+            vec2::splat(std::f32::consts::FRAC_1_SQRT_2),
+        ) - crate::util::world_to_screen(camera, framebuffer_size, vec2::ZERO);
+        options.size *= scale.len();
+        let font_size = options.size * 0.6; // TODO: could rescale all dependent code but whatever
+
+        let mut position = position;
+        for line in text.lines() {
+            let measure = font.measure(line, font_size);
+            let size = measure.size();
+            let align = size * (options.align - vec2::splat(0.5)); // Centered by default
+            let descent = -font.descent() * font_size;
+            let align = vec2(
+                measure.center().x + align.x,
+                descent + (measure.max.y - descent) * options.align.y,
+            );
+
+            let transform = mat3::translate(position)
+                * mat3::rotate(options.rotation)
+                * mat3::translate(-align);
+
+            font.draw_with(
+                framebuffer,
+                line,
+                z_index,
+                font_size,
+                options.color,
+                transform,
+                params.clone(),
+            );
+            position.y -= options.size; // NOTE: larger than text size to space out better
+        }
+    }
 }
