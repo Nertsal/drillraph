@@ -6,6 +6,10 @@
     drill_acceleration: 3.0,
     drill_rotation_speed: 3.0,
 
+    sprint_speed: 4.0,
+    sprint_duration: 3.0,
+    sprint_cooldown: 5.0,
+
     fuel_small_amount: 2.0,
     fuel_normal_amount: 5.0,
 

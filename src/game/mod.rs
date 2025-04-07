@@ -298,6 +298,7 @@ impl GameState {
                     }
                 }
                 NodeKind::TurnLeft | NodeKind::TurnRight => &sprites.turn_node,
+                NodeKind::Sprint { .. } => &sprites.sprint_node,
             };
             let position = node.position.map_bounds(to_screen);
             let position = self.util.draw_texture_pp(
@@ -469,6 +470,59 @@ impl GameState {
                         framebuffer,
                     );
                 }
+                NodeKind::Sprint { cooldown } => {
+                    let normal = &sprites.sprint_button_normal;
+                    let pressed = &sprites.sprint_button_pressed;
+                    let disabled = &sprites.sprint_button_disabled;
+
+                    let is_pressed = is_pressed || self.model.drill.sprint.is_some();
+                    let texture = if is_pressed {
+                        pressed
+                    } else if cooldown.is_above_min() {
+                        disabled
+                    } else {
+                        normal
+                    };
+                    {
+                        let mut pixel_scale = pixel_scale;
+                        if !is_pressed && is_hovered {
+                            pixel_scale *= 1.25;
+                        }
+                        self.util.draw_texture_pp(
+                            texture,
+                            position.center(),
+                            vec2(0.5, 0.5),
+                            Angle::ZERO,
+                            pixel_scale,
+                            Color::WHITE,
+                            &geng::PixelPerfectCamera,
+                            framebuffer,
+                        );
+                    }
+
+                    // Cooldown
+                    let pos = node
+                        .position
+                        .as_f32()
+                        .extend_uniform(-0.1)
+                        .extend_down(0.025)
+                        .as_r32();
+                    let mut pos = Aabb2::from_corners(to_screen(pos.min), to_screen(pos.max))
+                        .with_height(pixel_scale * 4.0, 0.0);
+                    self.util.draw_quad_outline(
+                        pos,
+                        pixel_scale,
+                        palette.sprint_back,
+                        &geng::PixelPerfectCamera,
+                        framebuffer,
+                    );
+                    self.context.geng.draw2d().quad(
+                        framebuffer,
+                        &geng::PixelPerfectCamera,
+                        pos.split_left(cooldown.get_ratio().as_f32()),
+                        palette.sprint_front,
+                    );
+                }
             }
         }
     }
@@ -591,6 +645,10 @@ impl GameState {
                         // Cannot drag the shop node - open the shop
                         self.toggle_shop();
                         return;
+                    }
+                    NodeKind::Sprint { .. } => {
+                        // We can still drag the node - start sprinting
+                        self.model.start_sprint(index);
                     }
                     _ => (),
                 }

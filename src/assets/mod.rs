@@ -114,6 +114,11 @@ pub struct Sprites {
     pub turn_right_button_normal: PixelTexture,
     pub turn_right_button_pressed: PixelTexture,
 
+    pub sprint_node: PixelTexture,
+    pub sprint_button_normal: PixelTexture,
+    pub sprint_button_pressed: PixelTexture,
+    pub sprint_button_disabled: PixelTexture,
+
     pub iron_ore: PixelTexture,
     pub bronze_ore: PixelTexture,
     pub silver_ore: PixelTexture,
@@ -136,6 +141,9 @@ pub struct Palette {
 
     pub fuel_back: Color,
     pub fuel_front: Color,
+
+    pub sprint_back: Color,
+    pub sprint_front: Color,
 
     pub rock: Color,
     pub resources: HashMap<ResourceKind, Color>,

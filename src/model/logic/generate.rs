@@ -18,6 +18,9 @@ impl Model {
                     bounded.set_ratio(r32(1.0));
                 }
                 NodeKind::TurnLeft | NodeKind::TurnRight => {}
+                NodeKind::Sprint { cooldown } => {
+                    cooldown.set_ratio(r32(0.0));
+                }
             }
         }
 

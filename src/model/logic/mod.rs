@@ -5,7 +5,7 @@ use super::*;
 impl Model {
     pub fn update(&mut self, delta_time: FloatTime) {
         self.simulation_time += delta_time;
-        self.validate_nodes();
+        self.update_nodes(delta_time);
 
         match self.phase {
             Phase::Setup => {}
@@ -26,6 +26,34 @@ impl Model {
         log::debug!("Launch the drill!");
         self.phase = Phase::Drill;
         self.drill.target_speed = self.config.drill_speed;
+    }
+
+    pub fn start_sprint(&mut self, node_i: usize) {
+        let Phase::Drill = self.phase else { return };
+
+        if self.drill.sprint.is_some() {
+            return;
+        };
+
+        let Some(node) = self.nodes.nodes.get_mut(node_i) else {
+            return;
+        };
+
+        let NodeKind::Sprint { cooldown } = &mut node.kind else {
+            return;
+        };
+
+        if cooldown.is_above_min() {
+            return;
+        }
+
+        cooldown.set_ratio(r32(1.0));
+        self.drill.sprint = Some(DrillSprint {
+            caused_by_node: node_i,
+            duration: Bounded::new_max(self.config.sprint_duration),
+        });
+        self.drill.speed = self.config.sprint_speed;
+        self.drill.target_speed = self.config.sprint_speed;
     }
 
     pub fn purchase_item(&mut self, index: usize) {
@@ -76,14 +104,21 @@ impl Model {
         self.generate_level();
     }
 
-    fn validate_nodes(&mut self) {
+    fn update_nodes(&mut self, delta_time: FloatTime) {
         let bounds = self.nodes.bounds;
         for node in &mut self.nodes.nodes {
             let offset = (bounds.min - node.position.min).map(|x| x.max(Coord::ZERO));
             node.position = node.position.translate(offset);
-
             let offset = (bounds.max - node.position.max).map(|x| x.min(Coord::ZERO));
             node.position = node.position.translate(offset);
+
+            if let Phase::Drill = self.phase {
+                if let NodeKind::Sprint { cooldown } = &mut node.kind {
+                    if self.drill.sprint.is_none() {
+                        cooldown.change(-delta_time);
+                    }
+                }
+            }
         }
     }
 
@@ -92,10 +127,30 @@ impl Model {
     }
 
     fn move_drill(&mut self, delta_time: FloatTime) {
+        // Move and accelerate
+        self.drill.target_speed = if self.drill.sprint.is_some() {
+            self.config.sprint_speed
+        } else {
+            self.config.drill_speed
+        };
         self.drill.speed += (self.drill.target_speed - self.drill.speed)
             .clamp_abs(self.config.drill_acceleration * delta_time);
         self.drill.collider.position +=
             self.drill.collider.rotation.unit_vec() * self.drill.speed * delta_time;
+
+        // Update sprint
+        if let Some(sprint) = &mut self.drill.sprint {
+            if let Some(node) = self.nodes.nodes.get_mut(sprint.caused_by_node) {
+                if let NodeKind::Sprint { cooldown } = &mut node.kind {
+                    cooldown.set_ratio(r32(1.0));
+                }
+            }
+
+            sprint.duration.change(-delta_time);
+            if sprint.duration.is_min() {
+                self.drill.sprint = None;
+            }
+        }
     }
 
     fn collide_drill(&mut self, _delta_time: FloatTime) {

@@ -12,6 +12,9 @@ vision_circle = "#FEF375" # Color of the vision circle around the drill
 fuel_back = "#5C4482" # Color of the unfilled fuel bar
 fuel_front = "#CB62A8" # Color of the filled fuel bar
 
+sprint_back = "#8595A8" # Color of the unfilled sprint cooldown bar
+sprint_front = "#BAC6D4" # Color of the filled sprint cooldown bar
+
 iron = "#EA795D" # Color of iron ore
 rock = "#444444" # Color of rocks
 

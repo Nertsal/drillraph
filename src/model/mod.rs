@@ -22,6 +22,10 @@ pub struct Config {
     pub drill_acceleration: Coord,
     pub drill_rotation_speed: Coord,
 
+    pub sprint_speed: Coord,
+    pub sprint_duration: Coord,
+    pub sprint_cooldown: Coord,
+
     pub fuel_small_amount: Fuel,
     pub fuel_normal_amount: Fuel,
 
@@ -118,6 +122,7 @@ pub enum NodeKind {
     Shop { level: usize },
     TurnLeft,
     TurnRight,
+    Sprint { cooldown: Bounded<FloatTime> },
 }
 
 #[derive(Debug)]
@@ -127,12 +132,19 @@ pub enum Phase {
 }
 
 #[derive(Debug)]
+pub struct DrillSprint {
+    pub caused_by_node: usize,
+    pub duration: Bounded<FloatTime>,
+}
+
+#[derive(Debug)]
 pub struct Drill {
     pub collider: Collider,
     pub drill_level: ResourceKind,
     pub speed: Coord,
     pub target_speed: Coord,
     pub colliding_with: HashSet<usize>,
+    pub sprint: Option<DrillSprint>,
 }
 
 pub struct Model {
@@ -230,6 +242,7 @@ impl Model {
                 speed: Coord::ZERO,
                 target_speed: Coord::ZERO,
                 colliding_with: HashSet::new(),
+                sprint: None,
             },
             vision_radius: r32(2.0),
             minerals: vec![],
