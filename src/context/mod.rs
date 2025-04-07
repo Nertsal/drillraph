@@ -52,7 +52,7 @@ impl Context {
         let ctx = Self {
             geng: geng.clone(),
             assets: assets.clone(),
-            music: Rc::new(MusicManager::new()),
+            music: Rc::new(MusicManager::new(geng.clone())),
             options: Rc::new(RefCell::new(Options::default())),
         };
         ctx.force_set_options(options);

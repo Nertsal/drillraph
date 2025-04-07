@@ -2,7 +2,7 @@ mod font;
 
 pub use self::font::*;
 
-use crate::prelude::Color;
+use crate::{model::Coord, prelude::Color};
 
 use std::path::PathBuf;
 
@@ -46,6 +46,7 @@ pub struct Assets {
     pub palette: Palette,
     pub shaders: Shaders,
     pub sprites: Sprites,
+    pub config: Config,
 }
 
 impl Assets {
@@ -70,6 +71,12 @@ pub struct Palette {
     pub background: Color,
     pub ui_view: Color,
     pub game_view: Color,
+}
+
+#[derive(geng::asset::Load, Serialize, Deserialize, Debug, Clone, Copy)]
+#[load(serde = "ron")]
+pub struct Config {
+    pub drill_size: Coord,
 }
 
 #[derive(Clone)]
