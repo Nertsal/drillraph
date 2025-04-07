@@ -2,7 +2,7 @@ mod font;
 
 pub use self::font::*;
 
-use crate::{model::Coord, prelude::Color};
+use crate::{model::Config, prelude::Color};
 
 use std::path::PathBuf;
 
@@ -77,12 +77,6 @@ pub struct Palette {
     pub vision_circle: Color,
 
     pub iron: Color,
-}
-
-#[derive(geng::asset::Load, Serialize, Deserialize, Debug, Clone, Copy)]
-#[load(serde = "ron")]
-pub struct Config {
-    pub drill_size: Coord,
 }
 
 #[derive(Clone)]
