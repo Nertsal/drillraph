@@ -545,7 +545,7 @@ impl geng::State for GameState {
         self.layout(framebuffer.size());
 
         let pixel_scale = framebuffer.size().as_f32() / crate::TARGET_SCREEN_SIZE.as_f32();
-        let pixel_scale = pixel_scale.x.min(pixel_scale.y).floor();
+        let pixel_scale = pixel_scale.x.min(pixel_scale.y).floor().max(0.25);
 
         let context = self.context.clone();
         let palette = &context.assets.palette;
