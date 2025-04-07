@@ -863,17 +863,20 @@ impl GameState {
                     conn: to_conn_i,
                 }) = self.hovering.clone()
                 {
-                    let nodes = &mut self.model.nodes;
-                    if let Some(node) = nodes.nodes.get_mut(node_i) {
-                        if let Some(conn) = node.connections.get_mut(conn_i) {
-                            let color = conn.kind;
-                            if let Some(to_node) = nodes.nodes.get_mut(to_node_i) {
-                                if let Some(to_conn) = to_node.connections.get_mut(to_conn_i) {
-                                    if to_conn.kind == color {
-                                        to_conn.connected_to = Some(node_i);
-                                        if let Some(node) = nodes.nodes.get_mut(node_i) {
-                                            if let Some(conn) = node.connections.get_mut(conn_i) {
-                                                conn.connected_to = Some(to_node_i);
+                    if node_i != to_node_i {
+                        let nodes = &mut self.model.nodes;
+                        if let Some(node) = nodes.nodes.get_mut(node_i) {
+                            if let Some(conn) = node.connections.get_mut(conn_i) {
+                                let color = conn.kind;
+                                if let Some(to_node) = nodes.nodes.get_mut(to_node_i) {
+                                    if let Some(to_conn) = to_node.connections.get_mut(to_conn_i) {
+                                        if to_conn.kind == color {
+                                            to_conn.connected_to = Some(node_i);
+                                            if let Some(node) = nodes.nodes.get_mut(node_i) {
+                                                if let Some(conn) = node.connections.get_mut(conn_i)
+                                                {
+                                                    conn.connected_to = Some(to_node_i);
+                                                }
                                             }
                                         }
                                     }
