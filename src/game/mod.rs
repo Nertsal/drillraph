@@ -24,7 +24,9 @@ pub struct GameState {
     ui_texture: ugli::Texture,
     game_texture: ugli::Texture,
     mask: MaskedRender,
+    screen_texture: ugli::Texture,
 
+    real_time: FloatTime,
     cursor_screen_pos: vec2<f64>,
     cursor_ui_pos: vec2<Coord>,
     cursor_game_pos: vec2<Coord>,
@@ -73,6 +75,7 @@ impl GameState {
             drag: None,
             turn_input: R32::ZERO,
 
+            real_time: FloatTime::ZERO,
             cursor_screen_pos: vec2::ZERO,
             cursor_ui_pos: vec2::ZERO,
             cursor_game_pos: vec2::ZERO,
@@ -89,6 +92,7 @@ impl GameState {
             ui_texture: geng_utils::texture::new_texture(context.geng.ugli(), vec2(1, 1)),
             game_texture: geng_utils::texture::new_texture(context.geng.ugli(), vec2(1, 1)),
             mask: MaskedRender::new(&context.geng, &context.assets, vec2(1, 1)),
+            screen_texture: geng_utils::texture::new_texture(context.geng.ugli(), vec2(1, 1)),
             context,
         }
     }
@@ -207,7 +211,12 @@ impl GameState {
         }
     }
 
-    fn draw_game_ui(&mut self, pixel_scale: f32, framebuffer: &mut ugli::Framebuffer) {
+    fn draw_game_ui(&mut self, pixel_scale: f32) {
+        let framebuffer = &mut geng_utils::texture::attach_texture(
+            &mut self.screen_texture,
+            self.context.geng.ugli(),
+        );
+
         let font_size = 25.0 * pixel_scale;
         let palette = &self.context.assets.palette;
         let sprites = &self.context.assets.sprites;
@@ -600,10 +609,15 @@ impl GameState {
         }
     }
 
-    fn draw_shop(&mut self, pixel_scale: f32, framebuffer: &mut ugli::Framebuffer) {
+    fn draw_shop(&mut self, pixel_scale: f32) {
         if !self.show_shop {
             return;
         }
+
+        let framebuffer = &mut geng_utils::texture::attach_texture(
+            &mut self.screen_texture,
+            self.context.geng.ugli(),
+        );
 
         let palette = &self.context.assets.palette;
         let sprites = &self.context.assets.sprites;
@@ -875,6 +889,7 @@ impl GameState {
 impl geng::State for GameState {
     fn update(&mut self, delta_time: f64) {
         let delta_time = r32(delta_time as f32);
+        self.real_time += delta_time;
         self.turn_input = R32::ZERO;
         self.update_hover();
         self.update_drag();
@@ -923,10 +938,24 @@ impl geng::State for GameState {
         }
     }
 
-    fn draw(&mut self, framebuffer: &mut ugli::Framebuffer) {
-        let pixel_scale = framebuffer.size().as_f32() / crate::TARGET_SCREEN_SIZE.as_f32();
+    fn draw(&mut self, final_framebuffer: &mut ugli::Framebuffer) {
+        let pixel_scale = final_framebuffer.size().as_f32() / crate::TARGET_SCREEN_SIZE.as_f32();
         let pixel_scale = pixel_scale.x.min(pixel_scale.y).floor().max(0.25);
-        self.layout(pixel_scale, framebuffer.size());
+        self.layout(pixel_scale, final_framebuffer.size());
+
+        self.draw_nodes(pixel_scale);
+        self.draw_game(pixel_scale);
+
+        geng_utils::texture::update_texture_size(
+            &mut self.screen_texture,
+            final_framebuffer.size(),
+            self.context.geng.ugli(),
+        );
+
+        let framebuffer = &mut geng_utils::texture::attach_texture(
+            &mut self.screen_texture,
+            self.context.geng.ugli(),
+        );
 
         let context = self.context.clone();
         let palette = &context.assets.palette;
@@ -934,7 +963,6 @@ impl geng::State for GameState {
         ugli::clear(framebuffer, Some(palette.background), None, None);
 
         // Ui
-        self.draw_nodes(pixel_scale);
         {
             let draw = geng_utils::texture::DrawTexture::new(&self.ui_texture).pixel_perfect(
                 self.ui_view.center(),
@@ -963,7 +991,6 @@ impl geng::State for GameState {
         }
 
         // Game
-        self.draw_game(pixel_scale);
         {
             let draw = geng_utils::texture::DrawTexture::new(&self.game_texture).pixel_perfect(
                 self.game_view.center(),
@@ -991,7 +1018,19 @@ impl geng::State for GameState {
             );
         }
 
-        self.draw_game_ui(pixel_scale, framebuffer);
-        self.draw_shop(pixel_scale, framebuffer);
+        self.draw_game_ui(pixel_scale);
+        self.draw_shop(pixel_scale);
+
+        // Postprocessing
+        ugli::draw(
+            final_framebuffer,
+            &self.context.assets.shaders.crt,
+            ugli::DrawMode::TriangleFan,
+            &self.util.unit_quad,
+            ugli::uniforms! {
+                u_texture: &self.screen_texture,
+            },
+            ugli::DrawParameters::default(),
+        );
     }
 }

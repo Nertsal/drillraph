@@ -67,6 +67,7 @@ pub struct Shaders {
     pub ellipse: Rc<ugli::Program>,
     pub masked: Rc<ugli::Program>,
     pub solid: Rc<ugli::Program>,
+    pub crt: Rc<ugli::Program>,
 }
 
 #[derive(geng::asset::Load)]
