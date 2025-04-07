@@ -1,26 +1,24 @@
-default = "#FF00FF"
-background = "#08080D"
-ui_view = "#085159"
-game_view = "#5F4A8C"
+default = "#FF00FF" # Displayed when some color is missing
+background = "#08080D" # Background of the whole game
+ui_view = "#085159" # Ui view border color
+game_view = "#5F4A8C" # Game view border color
 
-depth_text = "#CB62A8"
-gold_text = "#D9886A"
+depth_text = "#CB62A8" # Text color for the depth meter
+gold_text = "#D9886A" # Text color for gold related things
 
-drill = "#FEF375"
-vision_circle = "#FEF375"
+drill = "#FEF375" # Color of the drill
+vision_circle = "#FEF375" # Color of the vision circle around the drill
 
-fuel_back = "#5C4482"
-fuel_front = "#CB62A8"
+fuel_back = "#5C4482" # Color of the unfilled fuel bar
+fuel_front = "#CB62A8" # Color of the filled fuel bar
 
-iron = "#EA795D"
-rock = "#444444"
+iron = "#EA795D" # Color of iron ore
+rock = "#444444" # Color of rocks
 
+# Color of each resource ore
 [resources]
 Iron = "#EA795D"
 
-[nodes]
-power = "#3BD97F"
-fuel = "#80DBF7"
-
+# Color of each node connection type
 [nodes.connections]
 Fuel = "#6079DC"

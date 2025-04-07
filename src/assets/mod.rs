@@ -125,7 +125,6 @@ pub struct Palette {
     pub fuel_back: Color,
     pub fuel_front: Color,
 
-    pub iron: Color,
     pub rock: Color,
     pub resources: HashMap<ResourceKind, Color>,
 
@@ -134,9 +133,6 @@ pub struct Palette {
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct PaletteNodes {
-    pub power: Color,
-    pub fuel: Color,
-
     pub connections: HashMap<ConnectionKind, Color>,
 }
 
