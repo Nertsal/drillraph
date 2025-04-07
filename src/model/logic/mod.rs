@@ -152,6 +152,7 @@ impl Model {
         let bounds = self.nodes.bounds;
         let mut shop_i = 0;
         let mut drill_i = 0;
+        let mut vision_i = None;
         for (node_i, node) in self.nodes.nodes.iter_mut().enumerate() {
             let offset = (bounds.min - node.position.min).map(|x| x.max(Coord::ZERO));
             node.position = node.position.translate(offset);
@@ -161,6 +162,7 @@ impl Model {
             match node.kind {
                 NodeKind::Shop { .. } => shop_i = node_i,
                 NodeKind::Drill { .. } => drill_i = node_i,
+                NodeKind::Vision { .. } => vision_i = Some(node_i),
                 _ => {}
             }
 
@@ -178,7 +180,7 @@ impl Model {
             Upgrade,
             Battery,
         }
-        let count_nodes = |index: usize, kind: CountNode| -> usize {
+        let count_nodes = |nodes: &Nodes, index: usize, kind: CountNode| -> usize {
             let mut to_check = VecDeque::new();
             to_check.push_front(index);
             let mut checked = HashSet::new();
@@ -187,7 +189,7 @@ impl Model {
                 if !checked.insert(i) {
                     continue;
                 }
-                let Some(node) = self.nodes.nodes.get(i) else {
+                let Some(node) = nodes.nodes.get(i) else {
                     continue;
                 };
                 match (&kind, &node.kind) {
@@ -204,11 +206,8 @@ impl Model {
             upgrades
         };
 
-        let shop_upgrades = count_nodes(shop_i, CountNode::Upgrade);
-        let drill_upgrades = count_nodes(drill_i, CountNode::Upgrade);
-        let drill_batteries = count_nodes(drill_i, CountNode::Battery);
-
         // Update shop level
+        let shop_upgrades = count_nodes(&self.nodes, shop_i, CountNode::Upgrade);
         if let Some(node) = self.nodes.nodes.get_mut(shop_i) {
             if let NodeKind::Shop { level } = &mut node.kind {
                 *level = shop_upgrades;
@@ -216,6 +215,8 @@ impl Model {
         }
 
         // Update drill level
+        let drill_upgrades = count_nodes(&self.nodes, drill_i, CountNode::Upgrade);
+        let drill_batteries = count_nodes(&self.nodes, drill_i, CountNode::Battery);
         if let Some(node) = self.nodes.nodes.get_mut(drill_i) {
             if let NodeKind::Drill { level, power } = &mut node.kind {
                 *level = match drill_upgrades {
@@ -226,6 +227,22 @@ impl Model {
                 };
                 *power = Bounded::new(drill_batteries, 0..=drill_upgrades);
                 self.drill.drill_level = *level;
+            }
+        }
+
+        // Update vision level
+        if let Some(vision_i) = vision_i {
+            let vision_upgrades = count_nodes(&self.nodes, vision_i, CountNode::Upgrade);
+            if let Some(node) = self.nodes.nodes.get_mut(vision_i) {
+                if let NodeKind::Vision { level } = &mut node.kind {
+                    *level = vision_upgrades;
+                    self.drill.vision_radius = match *level {
+                        0 => self.config.vision,
+                        1 => self.config.vision_0,
+                        2 => self.config.vision_1,
+                        _ => self.config.vision_2,
+                    };
+                }
             }
         }
     }

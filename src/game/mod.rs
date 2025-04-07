@@ -132,7 +132,7 @@ impl GameState {
             &mut mask.mask,
             &model.camera,
             model.drill.collider.position.as_f32(),
-            model.vision_radius.as_f32(),
+            model.drill.vision_radius.as_f32(),
             Color::WHITE,
         );
 
@@ -185,8 +185,8 @@ impl GameState {
             framebuffer,
             &model.camera,
             model.drill.collider.position.as_f32(),
-            model.vision_radius.as_f32() * 0.97,
-            model.vision_radius.as_f32(),
+            model.drill.vision_radius.as_f32() * 0.97,
+            model.drill.vision_radius.as_f32(),
             palette.vision_circle,
         );
 
@@ -308,6 +308,11 @@ impl GameState {
                     ResourceKind::Gem => &sprites.drill_gold,
                 },
                 NodeKind::Battery => &sprites.battery_node,
+                NodeKind::Vision { level } => match level {
+                    0 => &sprites.drill_0_light,
+                    1 => &sprites.drill_1_light,
+                    _ => &sprites.drill_2_light,
+                },
             };
             let position = node.position.map_bounds(to_screen);
             let position = self.util.draw_texture_pp(
@@ -560,6 +565,7 @@ impl GameState {
                     }
                 }
                 NodeKind::Battery => {}
+                NodeKind::Vision { .. } => {}
             }
         }
     }

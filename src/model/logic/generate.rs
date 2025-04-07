@@ -24,6 +24,7 @@ impl Model {
                 NodeKind::Upgrade => {}
                 NodeKind::Drill { .. } => {}
                 NodeKind::Battery => {}
+                NodeKind::Vision { .. } => {}
             }
         }
 

@@ -22,6 +22,11 @@ pub struct Config {
     pub drill_acceleration: Coord,
     pub drill_rotation_speed: Coord,
 
+    pub vision: Coord,
+    pub vision_0: Coord,
+    pub vision_1: Coord,
+    pub vision_2: Coord,
+
     pub sprint_speed: Coord,
     pub sprint_duration: Coord,
     pub sprint_cooldown: Coord,
@@ -136,6 +141,9 @@ pub enum NodeKind {
     },
     Upgrade,
     Battery,
+    Vision {
+        level: usize,
+    },
 }
 
 #[derive(Debug)]
@@ -158,6 +166,7 @@ pub struct Drill {
     pub target_speed: Coord,
     pub colliding_with: HashSet<usize>,
     pub sprint: Option<DrillSprint>,
+    pub vision_radius: Coord,
 }
 
 pub struct Model {
@@ -175,7 +184,6 @@ pub struct Model {
     pub money: Money,
     pub shop: Vec<ShopItem>,
     pub drill: Drill,
-    pub vision_radius: Coord,
     pub minerals: Vec<Mineral>,
 
     pub particles_queue: Vec<SpawnParticles>,
@@ -283,8 +291,8 @@ impl Model {
                 target_speed: Coord::ZERO,
                 colliding_with: HashSet::new(),
                 sprint: None,
+                vision_radius: config.vision,
             },
-            vision_radius: r32(2.0),
             minerals: vec![],
 
             particles_queue: Vec::new(),

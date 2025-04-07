@@ -6,6 +6,11 @@
     drill_acceleration: 3.0,
     drill_rotation_speed: 3.0,
 
+    vision: 2.0,
+    vision_0: 2.5,
+    vision_1: 3.0,
+    vision_2: 4.0,
+
     sprint_speed: 4.0,
     sprint_duration: 3.0,
     sprint_cooldown: 5.0,

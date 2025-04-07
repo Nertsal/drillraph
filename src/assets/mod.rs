@@ -101,6 +101,10 @@ pub struct Sprites {
     pub drill_silver: PixelTexture,
     pub drill_gold: PixelTexture,
 
+    pub drill_0_light: PixelTexture,
+    pub drill_1_light: PixelTexture,
+    pub drill_2_light: PixelTexture,
+
     pub power_node: PixelTexture,
     pub power_button_normal: PixelTexture,
     pub power_button_pressed: PixelTexture,
