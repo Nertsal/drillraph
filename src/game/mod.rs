@@ -150,11 +150,28 @@ impl GameState {
             model.vision_radius.as_f32(),
             palette.vision_circle,
         );
+
+        // Floating Text
+        for (text, position, size, color, lifetime) in query!(
+            self.model.floating_texts,
+            (&text, &position, &size, &color, &lifetime)
+        ) {
+            let t = lifetime.get_ratio().as_f32().sqrt();
+            self.util.draw_text(
+                text,
+                position.as_f32(),
+                &self.context.assets.fonts.revolver_game,
+                TextRenderOptions::new(size.as_f32() * t).color(*color),
+                &model.camera,
+                framebuffer,
+            );
+        }
     }
 
     fn draw_game_ui(&mut self, pixel_scale: f32, framebuffer: &mut ugli::Framebuffer) {
         let font_size = 25.0 * pixel_scale;
         let palette = &self.context.assets.palette;
+        let sprites = &self.context.assets.sprites;
 
         // Depth meter
         let depth = -self.model.drill.collider.position.y.as_f32().ceil() as i64;
@@ -173,9 +190,31 @@ impl GameState {
             format!("{}", depth),
             pos - vec2(0.0, 0.9) * font_size,
             &self.context.assets.fonts.revolver_game,
-            TextRenderOptions::new(font_size * 1.0)
+            TextRenderOptions::new(font_size)
                 .align(vec2(1.0, 1.0))
                 .color(palette.depth_text),
+            &geng::PixelPerfectCamera,
+            framebuffer,
+        );
+
+        // Coins
+        let pos = self.ui_view.top_right() - vec2(1.5, 0.5) * font_size;
+        self.util.draw_texture_pp(
+            &sprites.coin,
+            pos - vec2(0.5, 0.0) * font_size,
+            vec2(1.0, 0.5),
+            Angle::ZERO,
+            pixel_scale,
+            &geng::PixelPerfectCamera,
+            framebuffer,
+        );
+        self.util.draw_text(
+            format!("{}", self.model.money),
+            pos,
+            &self.context.assets.fonts.revolver_game,
+            TextRenderOptions::new(font_size)
+                .align(vec2(0.0, 0.5))
+                .color(palette.gold_text),
             &geng::PixelPerfectCamera,
             framebuffer,
         );

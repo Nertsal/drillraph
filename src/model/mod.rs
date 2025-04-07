@@ -1,13 +1,15 @@
 mod collider;
 mod logic;
+mod particles;
 
-pub use self::collider::*;
+pub use self::{collider::*, particles::*};
 
 use crate::prelude::*;
 
 pub type Coord = R32;
 pub type FloatTime = R32;
 pub type ResourceCount = i64;
+pub type Money = i64;
 pub type Fuel = R32;
 
 #[derive(geng::asset::Load, Serialize, Deserialize, Debug, Clone)]
@@ -17,11 +19,17 @@ pub struct Config {
     pub drill_speed: Coord,
     pub drill_acceleration: Coord,
     pub map_width: Coord,
-    pub minerals: HashMap<MineralKind, Vec<MineralConfig>>,
+    pub minerals: HashMap<MineralKind, MineralConfig>,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, Copy)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct MineralConfig {
+    pub value: Money,
+    pub generation: Vec<MineralGeneration>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct MineralGeneration {
     pub range: [Coord; 2],
     pub density: R32,
 }
@@ -97,6 +105,7 @@ pub struct Drill {
 
 pub struct Model {
     pub config: Config,
+    pub palette: Palette,
     pub simulation_time: FloatTime,
     pub phase: Phase,
 
@@ -106,17 +115,22 @@ pub struct Model {
     pub depth_generated: Coord,
     pub nodes: Nodes,
 
+    pub money: Money,
     pub drill: Drill,
     pub vision_radius: Coord,
     pub minerals: Vec<Mineral>,
+
+    pub particles_queue: Vec<SpawnParticles>,
+    pub particles: StructOf<Arena<Particle>>,
+    pub floating_texts: StructOf<Arena<FloatingText>>,
 }
 
 impl Model {
     pub fn new(context: Context) -> Self {
         let config = &context.assets.config;
-        dbg!(&config.minerals);
         let mut model = Self {
             config: config.clone(),
+            palette: context.assets.palette.clone(),
             simulation_time: FloatTime::ZERO,
             phase: Phase::Setup,
 
@@ -160,6 +174,7 @@ impl Model {
                 ],
             },
 
+            money: 0,
             drill: Drill {
                 collider: Collider::circle(vec2::ZERO, config.drill_size),
                 drill_level: ResourceKind::Iron,
@@ -169,6 +184,10 @@ impl Model {
             },
             vision_radius: r32(2.0),
             minerals: vec![],
+
+            particles_queue: Vec::new(),
+            particles: default(),
+            floating_texts: default(),
         };
         model.generate_level();
         model

@@ -81,6 +81,7 @@ pub struct Fonts {
 
 #[derive(geng::asset::Load)]
 pub struct Sprites {
+    pub coin: PixelTexture,
     pub fill_thinner: PixelTexture,
     pub border_thinner: PixelTexture,
 }
@@ -94,6 +95,7 @@ pub struct Palette {
     pub game_view: Color,
 
     pub depth_text: Color,
+    pub gold_text: Color,
 
     pub drill: Color,
     pub vision_circle: Color,

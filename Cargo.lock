@@ -176,6 +176,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "anymap3"
+version = "1.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "170433209e817da6aae2c51aa0dd443009a613425dd041ebfb2492d1c4c11a25"
+
+[[package]]
 name = "approx"
 version = "0.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2769,6 +2775,7 @@ checksum = "830d08ce1d1d941e6b30645f1a0eb5643013d835ce3779a5fc208261dbe10f55"
 name = "ldjam57"
 version = "0.1.0"
 dependencies = [
+ "anymap3",
  "async-compat",
  "async-executor",
  "clap",
@@ -2777,6 +2784,7 @@ dependencies = [
  "parry2d",
  "rusttype",
  "serde",
+ "stecs",
 ]
 
 [[package]]
@@ -4509,6 +4517,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "slotmap"
+version = "1.0.7"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "dbff4acf519f630b3a3ddcfaea6c06b42174d9a44bc70c620e9ed1649d58b82a"
+dependencies = [
+ "version_check",
+]
+
+[[package]]
 name = "smallvec"
 version = "1.15.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4575,6 +4592,28 @@ name = "stable_deref_trait"
 version = "1.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a8f112729512f8e442d81f95a8a7ddf2b7c6b8a1a6f509a95864142b30cab2d3"
+
+[[package]]
+name = "stecs"
+version = "0.1.2"
+source = "git+https://github.com/nertsal/stecs?branch=dynamic#9a719e57047028255fa81251c64f40bb6cda1c2e"
+dependencies = [
+ "anymap3",
+ "slotmap",
+ "stecs-derive",
+]
+
+[[package]]
+name = "stecs-derive"
+version = "0.1.2"
+source = "git+https://github.com/nertsal/stecs?branch=dynamic#9a719e57047028255fa81251c64f40bb6cda1c2e"
+dependencies = [
+ "darling",
+ "proc-macro2",
+ "quote",
+ "syn 2.0.100",
+ "thiserror 1.0.69",
+]
 
 [[package]]
 name = "strength_reduce"

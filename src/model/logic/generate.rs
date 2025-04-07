@@ -5,7 +5,7 @@ impl Model {
         log::debug!("Generating next level..");
 
         // Reset drill
-        self.drill.collider.position = vec2::ZERO;
+        self.drill.collider.position = vec2(Coord::ZERO, self.ground_level);
         self.drill.collider.rotation = Angle::from_degrees(r32(-90.0));
 
         // Reset nodes
@@ -26,7 +26,7 @@ impl Model {
 
         // Spawn minerals
         self.minerals.clear();
-        self.depth_generated = Coord::ZERO;
+        self.depth_generated = self.ground_level;
         self.spawn_depths();
     }
 
@@ -43,8 +43,8 @@ impl Model {
     fn generate_strip(&mut self, y_max: Coord, y_min: Coord) {
         let mut rng = thread_rng();
 
-        for (&mineral_kind, configs) in &self.config.minerals {
-            for config in configs {
+        for (&mineral_kind, config) in &self.config.minerals {
+            for config in &config.generation {
                 let [mut mineral_min, mut mineral_max] = config.range;
                 if mineral_min > mineral_max {
                     std::mem::swap(&mut mineral_min, &mut mineral_max);

@@ -17,6 +17,7 @@ impl Model {
         }
 
         self.update_camera(delta_time);
+        self.process_particles(delta_time);
     }
 
     pub fn launch_drill(&mut self) {
@@ -83,10 +84,28 @@ impl Model {
                 }
             }
         }
-
         self.drill.colliding_with = collisions;
+
+        let mut rng = thread_rng();
+        let palette = &self.palette;
         for i in collected.into_iter().rev() {
-            self.minerals.swap_remove(i);
+            let mineral = self.minerals.swap_remove(i);
+            if let Some(config) = self.config.minerals.get(&mineral.kind) {
+                let value = mineral.amount * config.value;
+                let position = rng.gen_circle(mineral.collider.position, r32(0.2));
+                let speed = r32(0.5);
+                let velocity =
+                    Angle::from_degrees(r32(rng.gen_range(60.0..=120.0))).unit_vec() * speed;
+                self.money += value;
+                self.floating_texts.insert(FloatingText {
+                    text: format!("+{}", value).into(),
+                    position,
+                    velocity,
+                    size: r32(1.0),
+                    color: palette.gold_text,
+                    lifetime: Bounded::new_max(r32(1.0)),
+                });
+            }
         }
     }
 
@@ -120,5 +139,43 @@ impl Model {
 
         // Out of fuel
         self.end_drill_phase();
+    }
+
+    fn process_particles(&mut self, delta_time: FloatTime) {
+        // Floating texts
+        let mut dead_ids = Vec::new();
+        for (id, position, velocity, lifetime) in query!(
+            self.floating_texts,
+            (id, &mut position, &velocity, &mut lifetime)
+        ) {
+            *position += *velocity * delta_time;
+            lifetime.change(-delta_time);
+            if lifetime.is_min() {
+                dead_ids.push(id);
+            }
+        }
+        for id in dead_ids {
+            self.floating_texts.remove(id);
+        }
+
+        // Particles
+        let mut dead_ids = Vec::new();
+        for (id, position, velocity, lifetime) in query!(
+            self.particles,
+            (id, &mut position, &velocity, &mut lifetime)
+        ) {
+            *position += *velocity * delta_time;
+            lifetime.change(-delta_time);
+            if lifetime.is_min() {
+                dead_ids.push(id);
+            }
+        }
+        for id in dead_ids {
+            self.particles.remove(id);
+        }
+        let spawn = self.particles_queue.drain(..).flat_map(spawn_particles);
+        for particle in spawn {
+            self.particles.insert(particle);
+        }
     }
 }
