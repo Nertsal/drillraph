@@ -26,24 +26,13 @@ impl Model {
 
         // Check prerequisites
 
-        // 2. Drill has power
-        if !self.nodes.nodes.iter().all(|node| {
-            if let NodeKind::Drill { power, .. } = &node.kind {
-                power.is_max()
-            } else {
-                true
-            }
-        }) {
-            log::debug!("Launch impossible: drill does not have enough power");
-            return;
-        }
-
-        // 1. At least one fuel
+        // 1. Fuel and drill are connected
         {
             let mut to_check = VecDeque::new();
             to_check.push_front(0);
             let mut checked = HashSet::new();
             let mut has_fuel = false;
+            let mut has_drill = false;
             while let Some(i) = to_check.pop_front() {
                 if !checked.insert(i) {
                     continue;
@@ -51,9 +40,14 @@ impl Model {
                 let Some(node) = self.nodes.nodes.get(i) else {
                     return;
                 };
-                if let NodeKind::Fuel(..) = node.kind {
-                    has_fuel = true;
-                    break;
+                match node.kind {
+                    NodeKind::Fuel(..) => {
+                        has_fuel = true;
+                    }
+                    NodeKind::Drill { .. } => {
+                        has_drill = true;
+                    }
+                    _ => (),
                 }
                 for conn in &node.connections {
                     if let Some(to) = conn.connected_to {
@@ -65,6 +59,22 @@ impl Model {
                 log::debug!("Launch impossible: no fuel connected");
                 return;
             }
+            if !has_drill {
+                log::debug!("Launch impossible: drill is not connected");
+                return;
+            }
+        }
+
+        // 2. Drill has power
+        if !self.nodes.nodes.iter().all(|node| {
+            if let NodeKind::Drill { power, .. } = &node.kind {
+                power.is_max()
+            } else {
+                true
+            }
+        }) {
+            log::debug!("Launch impossible: drill does not have enough power");
+            return;
         }
 
         log::debug!("Launch the drill!");
@@ -153,12 +163,15 @@ impl Model {
                 ShopNode::FuelSmall | ShopNode::Fuel => {
                     mk_cons(&[((0.0, 0.5), ConnectionKind::Fuel)])
                 }
-                ShopNode::TurnLeft | ShopNode::TurnRight | ShopNode::Battery | ShopNode::Sprint => {
-                    mk_cons(&[
-                        ((0.0, 0.5), ConnectionKind::Normal),
-                        ((1.0, 0.5), ConnectionKind::Normal),
-                    ])
-                }
+                ShopNode::TurnLeft | ShopNode::TurnRight => mk_cons(&[
+                    ((0.0, 0.5), ConnectionKind::Normal),
+                    ((0.5, 1.0), ConnectionKind::Modifier),
+                    ((1.0, 0.5), ConnectionKind::Normal),
+                ]),
+                ShopNode::Battery | ShopNode::Sprint => mk_cons(&[
+                    ((0.0, 0.5), ConnectionKind::Normal),
+                    ((1.0, 0.5), ConnectionKind::Normal),
+                ]),
                 ShopNode::Upgrade => mk_cons(&[
                     ((0.5, 0.0), ConnectionKind::Upgrade),
                     ((0.5, 1.0), ConnectionKind::Upgrade),
@@ -270,13 +283,14 @@ impl Model {
                 if let NodeKind::Vision { level } = &mut node.kind {
                     *level = vision_upgrades;
                     self.drill.vision_radius = match *level {
-                        0 => self.config.vision,
-                        1 => self.config.vision_0,
-                        2 => self.config.vision_1,
+                        0 => self.config.vision_0,
+                        1 => self.config.vision_1,
                         _ => self.config.vision_2,
                     };
                 }
             }
+        } else {
+            self.drill.vision_radius = self.config.vision;
         }
 
         // Update speed level
@@ -286,13 +300,14 @@ impl Model {
                 if let NodeKind::Speed { level } = &mut node.kind {
                     *level = speed_upgrades;
                     self.drill.max_speed = match *level {
-                        0 => self.config.drill_speed,
-                        1 => self.config.drill_speed_0,
-                        2 => self.config.drill_speed_1,
+                        0 => self.config.drill_speed_0,
+                        1 => self.config.drill_speed_1,
                         _ => self.config.drill_speed_2,
                     };
                 }
             }
+        } else {
+            self.drill.max_speed = self.config.drill_speed;
         }
     }
 

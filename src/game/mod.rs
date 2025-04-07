@@ -798,22 +798,13 @@ impl GameState {
                 let nodes = &mut self.model.nodes;
                 if let Some(node) = nodes.nodes.get_mut(*index) {
                     match node.kind {
-                        NodeKind::TurnLeft => {
-                            // Cannot drag turn button - turn
-                            self.turn_input += r32(1.0);
-                        }
-                        NodeKind::TurnRight => {
-                            // Cannot drag turn button - turn
-                            self.turn_input -= r32(1.0);
-                        }
-                        _ => {
-                            node.position = node.position.translate(
-                                self.cursor_ui_pos + *from_position
-                                    - drag.from_ui
-                                    - node.position.center(),
-                            );
-                        }
+                        NodeKind::TurnLeft => self.turn_input += r32(1.0),
+                        NodeKind::TurnRight => self.turn_input -= r32(1.0),
+                        _ => {}
                     }
+                    node.position = node.position.translate(
+                        self.cursor_ui_pos + *from_position - drag.from_ui - node.position.center(),
+                    );
                 }
             }
             DragTarget::NodeConnection { .. } => {}
