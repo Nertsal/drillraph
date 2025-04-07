@@ -30,7 +30,7 @@
             value: 1,
             generation: [
                 (
-                    range: (-10, -1),
+                    range: (-20, -1),
                     density: 0.1,
                 ),
             ],
@@ -39,8 +39,12 @@
             value: 5,
             generation: [
                 (
-                    range: (-10, -1),
+                    range: (-15, -1),
                     density: 0.3,
+                ),
+                (
+                    range: (-30, -15),
+                    density: 0.1,
                 ),
             ],
         ),
@@ -55,16 +59,32 @@
                     range: (-20, -8),
                     density: 0.3,
                 ),
+                (
+                    range: (-40, -20),
+                    density: 0.1,
+                ),
             ],
         ),
         Resource(Silver): (
             value: 50,
             generation: [
+                (
+                    range: (-20, -18),
+                    density: 0.1,
+                ),
+                (
+                    range: (-25, -20),
+                    density: 0.2,
+                ),
             ],
         ),
         Resource(Gold): (
             value: 100,
             generation: [
+                (
+                    range: (-40, -25),
+                    density: 0.2,
+                ),
             ],
         ),
     },
