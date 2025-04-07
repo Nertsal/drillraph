@@ -64,6 +64,7 @@ impl Assets {
 pub struct Shaders {
     pub texture: Rc<ugli::Program>,
     pub ellipse: Rc<ugli::Program>,
+    pub masked: Rc<ugli::Program>,
 }
 
 #[derive(geng::asset::Load)]

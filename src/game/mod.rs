@@ -1,4 +1,9 @@
-use crate::{model::*, prelude::*, render::util::UtilRender, ui::layout::*};
+use crate::{
+    model::*,
+    prelude::*,
+    render::{mask::MaskedRender, util::UtilRender},
+    ui::layout::*,
+};
 
 use geng_utils::key::EventKey;
 
@@ -15,6 +20,7 @@ pub struct GameState {
     util: UtilRender,
     ui_texture: ugli::Texture,
     game_texture: ugli::Texture,
+    mask: MaskedRender,
 
     cursor_screen_pos: vec2<f64>,
     cursor_ui_pos: vec2<Coord>,
@@ -66,6 +72,7 @@ impl GameState {
             util: UtilRender::new(context.clone()),
             ui_texture: geng_utils::texture::new_texture(context.geng.ugli(), vec2(1, 1)),
             game_texture: geng_utils::texture::new_texture(context.geng.ugli(), vec2(1, 1)),
+            mask: MaskedRender::new(&context.geng, &context.assets, vec2(1, 1)),
             context,
         }
     }
@@ -79,11 +86,13 @@ impl GameState {
     }
 
     fn draw_game(&mut self, pixel_scale: f32) {
+        let size = (self.game_view.size() / pixel_scale).map(|x| x.floor() as usize);
         geng_utils::texture::update_texture_size(
             &mut self.game_texture,
-            (self.game_view.size() / pixel_scale).map(|x| x.floor() as usize),
+            size,
             self.context.geng.ugli(),
         );
+        self.mask.update_size(size);
 
         let palette = &self.context.assets.palette;
         let sprites = &self.context.assets.sprites;
@@ -94,6 +103,16 @@ impl GameState {
             self.context.geng.ugli(),
         );
         ugli::clear(framebuffer, Some(palette.background), None, None);
+
+        // Vision mask
+        let mut mask = self.mask.start();
+        self.context.geng.draw2d().circle(
+            &mut mask.mask,
+            &model.camera,
+            model.drill.collider.position.as_f32(),
+            model.vision_radius.as_f32(),
+            Color::WHITE,
+        );
 
         // Minerals
         for mineral in &model.minerals {
@@ -106,8 +125,10 @@ impl GameState {
                 MineralKind::Rock => palette.rock,
             };
             self.util
-                .draw_collider(&mineral.collider, color, &model.camera, framebuffer);
+                .draw_collider(&mineral.collider, color, &model.camera, &mut mask.color);
         }
+
+        self.mask.draw(ugli::DrawParameters::default(), framebuffer);
 
         // Drill
         self.util.draw_collider(
@@ -129,9 +150,10 @@ impl GameState {
     }
 
     fn draw_nodes(&mut self, pixel_scale: f32) {
+        let size = self.ui_view.size().map(|x| x.floor() as usize);
         geng_utils::texture::update_texture_size(
             &mut self.ui_texture,
-            self.ui_view.size().map(|x| x.floor() as usize),
+            size,
             self.context.geng.ugli(),
         );
         let ui_size = self.ui_texture.size();
