@@ -30,6 +30,7 @@ impl Model {
         let Phase::Drill = self.phase else { return };
         log::debug!("Ending drill phase");
         self.phase = Phase::Setup;
+        self.generate_level();
     }
 
     fn validate_nodes(&mut self) {
@@ -48,13 +49,46 @@ impl Model {
     }
 
     fn move_drill(&mut self, delta_time: FloatTime) {
-        self.drill.speed +=
-            (self.drill.target_speed - self.drill.speed).clamp_abs(self.config.drill_acceleration);
+        self.drill.speed += (self.drill.target_speed - self.drill.speed)
+            .clamp_abs(self.config.drill_acceleration * delta_time);
         self.drill.collider.position +=
             self.drill.collider.rotation.unit_vec() * self.drill.speed * delta_time;
     }
 
-    fn collide_drill(&mut self, _delta_time: FloatTime) {}
+    fn collide_drill(&mut self, _delta_time: FloatTime) {
+        let mut collected = Vec::new();
+        let mut collisions = HashSet::new();
+        for (i, mineral) in self.minerals.iter().enumerate() {
+            if !mineral.collider.check(&self.drill.collider) {
+                continue;
+            }
+            collisions.insert(i);
+            if self.drill.colliding_with.contains(&i) {
+                continue;
+            }
+
+            match mineral.kind {
+                MineralKind::Resource(kind) => {
+                    if kind <= self.drill.drill_level {
+                        // Collect
+                        collected.push(i);
+                    } else {
+                        // Bounce
+                        self.drill.speed = r32(0.5);
+                    }
+                }
+                MineralKind::Rock => {
+                    // Bounce
+                    self.drill.speed = r32(0.5);
+                }
+            }
+        }
+
+        self.drill.colliding_with = collisions;
+        for i in collected.into_iter().rev() {
+            self.minerals.swap_remove(i);
+        }
+    }
 
     fn use_fuel(&mut self, delta_time: FloatTime) {
         let mut checked = HashSet::new();

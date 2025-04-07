@@ -34,13 +34,12 @@ pub struct Mineral {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq, Hash)]
-#[serde(untagged)]
 pub enum MineralKind {
     Resource(ResourceKind),
     Rock,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub enum ResourceKind {
     Coal,
     Iron,
@@ -90,8 +89,10 @@ pub enum Phase {
 #[derive(Debug)]
 pub struct Drill {
     pub collider: Collider,
+    pub drill_level: ResourceKind,
     pub speed: Coord,
     pub target_speed: Coord,
+    pub colliding_with: HashSet<usize>,
 }
 
 pub struct Model {
@@ -113,6 +114,7 @@ pub struct Model {
 impl Model {
     pub fn new(context: Context) -> Self {
         let config = &context.assets.config;
+        dbg!(&config.minerals);
         let mut model = Self {
             config: config.clone(),
             simulation_time: FloatTime::ZERO,
@@ -160,8 +162,10 @@ impl Model {
 
             drill: Drill {
                 collider: Collider::circle(vec2::ZERO, config.drill_size),
+                drill_level: ResourceKind::Iron,
                 speed: Coord::ZERO,
                 target_speed: Coord::ZERO,
+                colliding_with: HashSet::new(),
             },
             vision_radius: r32(2.0),
             minerals: vec![],
