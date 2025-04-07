@@ -158,13 +158,24 @@ impl GameState {
 
         // Depth meter
         let depth = -self.model.drill.collider.position.y.as_f32().ceil() as i64;
+        let pos = self.game_view.top_right() - vec2(0.5, 0.5) * font_size;
         self.util.draw_text(
-            format!("DEPTH: {:3}m", depth),
-            self.game_view.align_pos(vec2(0.95, 0.95)),
+            "DEPTH",
+            pos,
             &self.context.assets.fonts.revolver_display,
             TextRenderOptions::new(font_size)
                 .align(vec2(1.0, 1.0))
                 .color(palette.game_view),
+            &geng::PixelPerfectCamera,
+            framebuffer,
+        );
+        self.util.draw_text(
+            format!("{}", depth),
+            pos - vec2(0.0, 0.9) * font_size,
+            &self.context.assets.fonts.revolver_game,
+            TextRenderOptions::new(font_size * 1.0)
+                .align(vec2(1.0, 1.0))
+                .color(palette.depth_text),
             &geng::PixelPerfectCamera,
             framebuffer,
         );

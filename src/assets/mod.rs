@@ -93,6 +93,8 @@ pub struct Palette {
     pub ui_view: Color,
     pub game_view: Color,
 
+    pub depth_text: Color,
+
     pub drill: Color,
     pub vision_circle: Color,
 
