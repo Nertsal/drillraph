@@ -3,7 +3,6 @@ use super::*;
 impl Model {
     pub fn generate_level(&mut self) {
         log::debug!("Generating next level..");
-        let mut rng = thread_rng();
 
         // Reset drill
         self.drill.collider.position = vec2(Coord::ZERO, self.ground_level);
@@ -105,7 +104,8 @@ impl Model {
         self.shop = items
             .into_iter()
             .filter(|item| !item.item.sold_out)
-            .choose_multiple(&mut rng, shop_config.slots);
+            .take(shop_config.slots)
+            .collect();
     }
 
     pub fn spawn_depths(&mut self) {
