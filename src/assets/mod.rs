@@ -87,6 +87,8 @@ pub struct Sprites {
     pub fuel_normal_node: PixelTexture,
     pub fill_thinner: PixelTexture,
     pub border_thinner: PixelTexture,
+    pub border_ui: PixelTexture,
+    pub border_game: PixelTexture,
 }
 
 #[derive(geng::asset::Load, Serialize, Deserialize, Debug, Clone)]

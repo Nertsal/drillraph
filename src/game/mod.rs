@@ -554,43 +554,61 @@ impl geng::State for GameState {
 
         // Ui
         self.draw_nodes(pixel_scale);
-        let target = self.util.draw_texture_pp(
-            &self.ui_texture,
-            self.ui_view.center(),
-            vec2(0.5, 0.5),
-            Angle::ZERO,
-            1.0,
-            &geng::PixelPerfectCamera,
-            framebuffer,
-        );
-        self.util.draw_nine_slice(
-            target,
-            palette.ui_view,
-            &sprites.border_thinner,
-            pixel_scale,
-            &geng::PixelPerfectCamera,
-            framebuffer,
-        );
+        {
+            let draw = geng_utils::texture::DrawTexture::new(&self.ui_texture).pixel_perfect(
+                self.ui_view.center(),
+                vec2(0.5, 0.5),
+                1.0,
+                &geng::PixelPerfectCamera,
+                framebuffer,
+            );
+            self.util.draw_nine_slice(
+                draw.target.extend_uniform(2.0 * pixel_scale),
+                Color::WHITE,
+                &sprites.border_ui,
+                pixel_scale,
+                &geng::PixelPerfectCamera,
+                framebuffer,
+            );
+            self.context.geng.draw2d().draw2d(
+                framebuffer,
+                &geng::PixelPerfectCamera,
+                &draw2d::TexturedQuad::unit(draw.texture).transform(
+                    mat3::translate(draw.target.center())
+                        * mat3::rotate(Angle::ZERO)
+                        * mat3::scale(draw.target.size() / 2.0),
+                ),
+            );
+        }
 
         // Game
         self.draw_game(pixel_scale);
-        let target = self.util.draw_texture_pp(
-            &self.game_texture,
-            self.game_view.center(),
-            vec2(0.5, 0.5),
-            Angle::ZERO,
-            pixel_scale,
-            &geng::PixelPerfectCamera,
-            framebuffer,
-        );
-        self.util.draw_nine_slice(
-            target,
-            palette.game_view,
-            &sprites.border_thinner,
-            pixel_scale,
-            &geng::PixelPerfectCamera,
-            framebuffer,
-        );
+        {
+            let draw = geng_utils::texture::DrawTexture::new(&self.game_texture).pixel_perfect(
+                self.game_view.center(),
+                vec2(0.5, 0.5),
+                pixel_scale,
+                &geng::PixelPerfectCamera,
+                framebuffer,
+            );
+            self.util.draw_nine_slice(
+                draw.target.extend_uniform(2.0 * pixel_scale),
+                Color::WHITE,
+                &sprites.border_game,
+                pixel_scale,
+                &geng::PixelPerfectCamera,
+                framebuffer,
+            );
+            self.context.geng.draw2d().draw2d(
+                framebuffer,
+                &geng::PixelPerfectCamera,
+                &draw2d::TexturedQuad::unit(draw.texture).transform(
+                    mat3::translate(draw.target.center())
+                        * mat3::rotate(Angle::ZERO)
+                        * mat3::scale(draw.target.size() / 2.0),
+                ),
+            );
+        }
 
         self.draw_game_ui(pixel_scale, framebuffer);
     }
