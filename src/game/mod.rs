@@ -154,7 +154,7 @@ impl GameState {
             );
 
             // Connections
-            for connection in &node.connections {
+            for (conn_i, connection) in node.connections.iter().enumerate() {
                 let color = palette
                     .nodes
                     .connections
@@ -191,6 +191,22 @@ impl GameState {
                     Some(())
                 };
                 draw_connection();
+
+                if let Some(DragTarget::NodeConnection {
+                    node: drag_node,
+                    conn: drag_conn,
+                }) = self.drag.as_ref().map(|drag| &drag.target)
+                {
+                    if *drag_node == node_i && *drag_conn == conn_i {
+                        let from = node.position.center() + connection.offset;
+                        let to = self.cursor_ui_pos;
+                        self.context.geng.draw2d().draw2d(
+                            framebuffer,
+                            &nodes.camera,
+                            &draw2d::Segment::new(Segment(from.as_f32(), to.as_f32()), 0.1, color),
+                        );
+                    }
+                }
             }
         }
     }
@@ -198,7 +214,13 @@ impl GameState {
     fn mouse_down(&mut self) {
         self.end_drag();
         if let Some(target) = self.hovering.clone() {
-            if let DragTarget::Node { index, .. } = target {
+            self.start_drag(target);
+        }
+    }
+
+    fn start_drag(&mut self, target: DragTarget) {
+        match target {
+            DragTarget::Node { index, .. } => {
                 if self
                     .model
                     .nodes
@@ -210,15 +232,24 @@ impl GameState {
                     return;
                 }
             }
-
-            let drag = Drag {
-                from_screen: self.cursor_screen_pos,
-                from_ui: self.cursor_ui_pos,
-                target,
-            };
-            log::debug!("Started drag: {:?}", drag);
-            self.drag = Some(drag);
+            DragTarget::NodeConnection { node, conn } => {
+                let Some(node) = self.model.nodes.nodes.get_mut(node) else {
+                    return;
+                };
+                let Some(conn) = node.connections.get_mut(conn) else {
+                    return;
+                };
+                conn.connected_to = None;
+            }
         }
+
+        let drag = Drag {
+            from_screen: self.cursor_screen_pos,
+            from_ui: self.cursor_ui_pos,
+            target,
+        };
+        log::debug!("Started drag: {:?}", drag);
+        self.drag = Some(drag);
     }
 
     fn end_drag(&mut self) {
@@ -226,7 +257,25 @@ impl GameState {
 
         match drag.target {
             DragTarget::Node { .. } => {}
-            DragTarget::NodeConnection { node, conn } => todo!(),
+            DragTarget::NodeConnection { node, conn } => {
+                if let Some(DragTarget::NodeConnection {
+                    node: to_node,
+                    conn: to_conn,
+                }) = self.hovering.clone()
+                {
+                    let nodes = &mut self.model.nodes;
+                    if let Some(node) = nodes.nodes.get_mut(node) {
+                        if let Some(conn) = node.connections.get_mut(conn) {
+                            conn.connected_to = Some(to_node);
+                        }
+                    }
+                    if let Some(to_node) = nodes.nodes.get_mut(to_node) {
+                        if let Some(to_conn) = to_node.connections.get_mut(to_conn) {
+                            to_conn.connected_to = Some(node);
+                        }
+                    }
+                }
+            }
         }
     }
 
@@ -245,7 +294,7 @@ impl GameState {
                     );
                 }
             }
-            DragTarget::NodeConnection { node, conn } => todo!(),
+            DragTarget::NodeConnection { .. } => {}
         }
     }
 
