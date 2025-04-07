@@ -130,6 +130,23 @@ impl GameState {
         );
         ugli::clear(framebuffer, Some(palette.background), None, None);
 
+        // Background
+        ugli::draw(
+            framebuffer,
+            &self.context.assets.shaders.tiled_texture,
+            ugli::DrawMode::TriangleFan,
+            &self.util.unit_quad,
+            (
+                ugli::uniforms! {
+                    u_texture: &*sprites.drill_background_largedot_purple,
+                    u_offset: vec2(0.0, 0.0),
+                    u_scale: vec2(framebuffer.size().as_f32().aspect(), 1.0) * 3.0,
+                },
+                model.camera.uniforms(framebuffer.size().as_f32()),
+            ),
+            ugli::DrawParameters::default(),
+        );
+
         // Vision mask
         let mut mask = self.mask.start();
         self.context.geng.draw2d().circle(
@@ -313,6 +330,24 @@ impl GameState {
         let sprites = &self.context.assets.sprites;
 
         ugli::clear(framebuffer, Some(palette.background), None, None);
+
+        // Background
+        let offset = vec2(10.0, 10.0) * self.real_time.as_f32();
+        ugli::draw(
+            framebuffer,
+            &self.context.assets.shaders.tiled_texture,
+            ugli::DrawMode::TriangleFan,
+            &self.util.unit_quad,
+            (
+                ugli::uniforms! {
+                    u_texture: &*sprites.drill_background_green,
+                    u_offset: offset,
+                    u_scale: vec2(framebuffer.size().as_f32().aspect(), 1.0) * 3.0,
+                },
+                geng::PixelPerfectCamera.uniforms(framebuffer.size().as_f32()),
+            ),
+            ugli::DrawParameters::default(),
+        );
 
         let to_screen = |pos: vec2<Coord>| {
             crate::util::world_to_screen(&nodes.camera, ui_size.as_f32(), pos.as_f32())

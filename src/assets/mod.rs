@@ -63,6 +63,7 @@ impl Assets {
 
 #[derive(geng::asset::Load)]
 pub struct Shaders {
+    pub tiled_texture: Rc<ugli::Program>,
     pub texture: Rc<ugli::Program>,
     pub ellipse: Rc<ugli::Program>,
     pub masked: Rc<ugli::Program>,
@@ -93,6 +94,8 @@ pub struct Sprites {
     pub border_game: PixelTexture,
     pub border_shop: PixelTexture,
     pub connect_dot: PixelTexture,
+    pub drill_background_largedot_purple: PixelTexture,
+    pub drill_background_green: PixelTexture,
 
     pub upgrade_node: PixelTexture,
     pub battery_node: PixelTexture,
