@@ -1,5 +1,3 @@
-// adapted from <https://www.shadertoy.com/view/WsVSzV>
-
 varying vec2 v_vt;
 
 #ifdef VERTEX_SHADER
@@ -15,27 +13,19 @@ void main() {
 #ifdef FRAGMENT_SHADER
 uniform sampler2D u_texture;
 
-const float warp = 0.25; // simulate curvature of CRT monitor
-const float scan = 0.5; // simulate darkness between scanlines
+const float curvature = 10.0;
+const float vignette_multiplier = 0.2;
 
 void main() {
-    // squared distance from center
-    vec2 uv = v_vt;
-    vec2 dc = abs(0.5 - uv);
-    dc *= dc;
-    
-    // warp the fragment coordinates
-    uv.x -= 0.5; uv.x *= 1.0 + (dc.y * (0.3 * warp)); uv.x += 0.5;
-    uv.y -= 0.5; uv.y *= 1.0 + (dc.x * (0.4 * warp)); uv.y += 0.5;
+    vec2 centered_uv = v_vt * 2.0 - 1.0;
+    vec2 uv_offset = centered_uv.yx / curvature;
+    vec2 warped_uv = centered_uv + centered_uv * uv_offset * uv_offset;
+    vec3 cutoff = vec3(step(abs(warped_uv.x), 1.0) * step(abs(warped_uv.y), 1.0));
+    vec3 scanlines = vec3(sin(2.0 * warped_uv.y * 180.0) * 0.1 + 0.9);
+    vec3 vignette = vec3(length(pow(abs(centered_uv), vec2(4.0)) / 3.0));
 
-    // sample inside boundaries, otherwise set to black
-    if (uv.y > 1.0 || uv.x < 0.0 || uv.x > 1.0 || uv.y < 0.0) {
-        gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
-    } else {
-        // determine if we are drawing in a scanline
-        float apply = abs(sin(v_vt.y) * 0.5 * scan);
-        // sample the texture
-        gl_FragColor = vec4(mix(texture2D(u_texture, uv).rgb, vec3(0.0), apply), 1.0);
-    }
+    vec3 screen_color = texture2D(u_texture, (warped_uv + 1.0) / 2.0, 0.2).rgb * cutoff * scanlines;
+    screen_color -= vignette * vignette_multiplier;
+    gl_FragColor = vec4(screen_color, 1.0);
 }
 #endif
