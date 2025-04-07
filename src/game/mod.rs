@@ -33,11 +33,13 @@ pub struct GameState {
     hovering: Option<DragTarget>,
     drag: Option<Drag>,
 
-    show_shop: bool,
     screen: Aabb2<f32>,
     ui_view: Aabb2<f32>,
     game_view: Aabb2<f32>,
+
+    show_shop: bool,
     shop_view: Aabb2<f32>,
+    shop_items: Vec<Aabb2<f32>>,
 }
 
 #[derive(Debug)]
@@ -57,6 +59,9 @@ pub enum DragTarget {
         node: usize,
         conn: usize,
     },
+    Shop {
+        item: usize,
+    },
 }
 
 impl GameState {
@@ -70,11 +75,13 @@ impl GameState {
             cursor_ui_pos: vec2::ZERO,
             cursor_game_pos: vec2::ZERO,
 
-            show_shop: false,
             screen: Aabb2::ZERO,
             ui_view: Aabb2::ZERO,
             game_view: Aabb2::ZERO,
+
+            show_shop: false,
             shop_view: Aabb2::ZERO,
+            shop_items: Vec::new(),
 
             util: UtilRender::new(context.clone()),
             ui_texture: geng_utils::texture::new_texture(context.geng.ugli(), vec2(1, 1)),
@@ -261,7 +268,13 @@ impl GameState {
             let texture = match &node.kind {
                 NodeKind::Power => &sprites.power_node,
                 NodeKind::Shop { .. } => &sprites.shop_0_node,
-                NodeKind::Fuel(..) => &sprites.fuel_normal_node,
+                NodeKind::Fuel(fuel) => {
+                    if fuel.max() == self.context.assets.config.fuel_small_amount {
+                        &sprites.fuel_small_node
+                    } else {
+                        &sprites.fuel_normal_node
+                    }
+                }
             };
             let position = node.position.map_bounds(to_screen);
             let position = self.util.draw_texture_pp(
@@ -297,7 +310,7 @@ impl GameState {
                 let color = palette
                     .nodes
                     .connections
-                    .get(&connection.color)
+                    .get(&connection.kind)
                     .copied()
                     .unwrap_or(palette.default);
                 self.util.draw_texture_pp(
@@ -435,6 +448,7 @@ impl GameState {
             return;
         }
 
+        let palette = &self.context.assets.palette;
         let sprites = &self.context.assets.sprites;
 
         self.util.draw_nine_slice(
@@ -445,6 +459,79 @@ impl GameState {
             &geng::PixelPerfectCamera,
             framebuffer,
         );
+
+        let coin = &sprites.coin;
+        let cost_height = (coin.size().y as f32 + 4.0) * pixel_scale;
+
+        let padding = pixel_scale * 5.0;
+        let bounds = self.shop_view.extend_uniform(-padding);
+        let mut next_pos = bounds.top_left();
+        let mut row_height: f32 = 0.0;
+
+        self.shop_items.clear();
+        for (index, item) in self.model.shop.iter().enumerate() {
+            let is_hovered = matches!(
+                self.hovering,
+                Some(DragTarget::Shop { item }) if item == index
+            );
+
+            let texture = match item.node {
+                ShopNode::FuelSmall => &sprites.fuel_small_node,
+                ShopNode::Fuel => &sprites.fuel_normal_node,
+            };
+            let size = texture.size().as_f32() * pixel_scale;
+            row_height = row_height.max(size.y + cost_height);
+            if bounds.max.x - next_pos.x < size.x {
+                // Next row
+                next_pos = vec2(bounds.min.x, next_pos.y - row_height);
+            }
+
+            let mut pixel_scale = pixel_scale;
+            if is_hovered {
+                pixel_scale *= 1.1;
+            }
+            let position = Aabb2::point(next_pos)
+                .extend_right(size.x)
+                .extend_down(size.y);
+            let position = self.util.draw_texture_pp(
+                texture,
+                position.center(),
+                vec2(0.5, 0.5),
+                Angle::ZERO,
+                pixel_scale,
+                Color::WHITE,
+                &geng::PixelPerfectCamera,
+                framebuffer,
+            );
+            self.shop_items.push(position);
+            next_pos.x += size.x + padding;
+
+            let mut position = Aabb2::point(position.bottom_left())
+                .extend_right(position.width())
+                .extend_down(cost_height)
+                .with_width(position.width() - padding, 0.5);
+            let coin_pos = position.cut_left(coin.size().x as f32 * pixel_scale);
+            self.util.draw_texture_pp(
+                coin,
+                coin_pos.center(),
+                vec2(0.5, 0.5),
+                Angle::ZERO,
+                pixel_scale,
+                Color::WHITE,
+                &geng::PixelPerfectCamera,
+                framebuffer,
+            );
+            self.util.draw_text(
+                format!("{}", item.cost),
+                position.align_pos(vec2(0.0, 0.5)),
+                &self.context.assets.fonts.revolver_game,
+                TextRenderOptions::new(coin.size().y as f32 * pixel_scale)
+                    .color(palette.gold_text)
+                    .align(vec2(0.0, 0.5)),
+                &geng::PixelPerfectCamera,
+                framebuffer,
+            );
+        }
     }
 
     fn toggle_shop(&mut self) {
@@ -499,6 +586,11 @@ impl GameState {
                     }
                 }
             }
+            DragTarget::Shop { item } => {
+                // Cannot drag shop items - buy them
+                self.model.purchase_item(item);
+                return;
+            }
         }
 
         let drag = Drag {
@@ -530,10 +622,10 @@ impl GameState {
                     let nodes = &mut self.model.nodes;
                     if let Some(node) = nodes.nodes.get_mut(node_i) {
                         if let Some(conn) = node.connections.get_mut(conn_i) {
-                            let color = conn.color;
+                            let color = conn.kind;
                             if let Some(to_node) = nodes.nodes.get_mut(to_node_i) {
                                 if let Some(to_conn) = to_node.connections.get_mut(to_conn_i) {
-                                    if to_conn.color == color {
+                                    if to_conn.kind == color {
                                         to_conn.connected_to = Some(node_i);
                                         if let Some(node) = nodes.nodes.get_mut(node_i) {
                                             if let Some(conn) = node.connections.get_mut(conn_i) {
@@ -547,6 +639,7 @@ impl GameState {
                     }
                 }
             }
+            DragTarget::Shop { .. } => {}
         }
     }
 
@@ -566,13 +659,20 @@ impl GameState {
                 }
             }
             DragTarget::NodeConnection { .. } => {}
+            DragTarget::Shop { .. } => {}
         }
     }
 
     fn update_hover(&mut self) {
         self.hovering = None;
 
-        if self.shop_view.contains(self.cursor_screen_pos.as_f32()) {
+        if self.show_shop && self.shop_view.contains(self.cursor_screen_pos.as_f32()) {
+            for (i, pos) in self.shop_items.iter().enumerate() {
+                if pos.contains(self.cursor_screen_pos.as_f32()) {
+                    self.hovering = Some(DragTarget::Shop { item: i });
+                    return;
+                }
+            }
             return;
         }
 

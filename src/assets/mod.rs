@@ -4,7 +4,7 @@ pub use self::font::*;
 
 use crate::{
     game::Controls,
-    model::{Config, ConnectionColor, ResourceKind},
+    model::{Config, ConnectionKind, ResourceKind},
     prelude::Color,
 };
 
@@ -137,7 +137,7 @@ pub struct PaletteNodes {
     pub power: Color,
     pub fuel: Color,
 
-    pub connections: HashMap<ConnectionColor, Color>,
+    pub connections: HashMap<ConnectionKind, Color>,
 }
 
 #[derive(Clone)]

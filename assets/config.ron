@@ -39,7 +39,16 @@
 
     shop_0: (
         slots: 2,
-        items: []
+        items: [
+            (
+                cost: 5,
+                node: FuelSmall,
+            ),
+            (
+                cost: 10,
+                node: Fuel,
+            ),
+        ]
     ),
 
     shop_1: (

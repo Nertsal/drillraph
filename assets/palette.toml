@@ -23,4 +23,4 @@ power = "#3BD97F"
 fuel = "#80DBF7"
 
 [nodes.connections]
-Blue = "#6079DC"
+Fuel = "#6079DC"

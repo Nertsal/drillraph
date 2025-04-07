@@ -100,13 +100,13 @@ pub struct Node {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct NodeConnection {
     pub offset: vec2<Coord>,
-    pub color: ConnectionColor,
+    pub kind: ConnectionKind,
     pub connected_to: Option<usize>,
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Hash)]
-pub enum ConnectionColor {
-    Blue,
+pub enum ConnectionKind {
+    Fuel,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -184,7 +184,7 @@ impl Model {
                         kind: NodeKind::Power,
                         connections: vec![NodeConnection {
                             offset: vec2(1.0, 0.5).as_r32(),
-                            color: ConnectionColor::Blue,
+                            kind: ConnectionKind::Fuel,
                             connected_to: None,
                         }],
                     },
@@ -194,11 +194,7 @@ impl Model {
                             .extend_up(1.0)
                             .as_r32(),
                         kind: NodeKind::Shop { level: 0 },
-                        connections: vec![NodeConnection {
-                            offset: vec2(0.5, 1.0).as_r32(),
-                            color: ConnectionColor::Blue,
-                            connected_to: None,
-                        }],
+                        connections: vec![],
                     },
                     Node {
                         position: Aabb2::point(vec2(3.0, -4.0))
@@ -208,7 +204,7 @@ impl Model {
                         kind: NodeKind::Fuel(Bounded::new_max(config.fuel_normal_amount)),
                         connections: vec![NodeConnection {
                             offset: vec2(0.0, 0.5).as_r32(),
-                            color: ConnectionColor::Blue,
+                            kind: ConnectionKind::Fuel,
                             connected_to: None,
                         }],
                     },

@@ -31,10 +31,16 @@ impl Model {
     pub fn purchase_item(&mut self, index: usize) {
         let Phase::Setup = self.phase else { return };
 
-        if self.shop.len() <= index {
+        let Some(item) = self.shop.get(index) else {
             return;
+        };
+
+        if item.cost > self.money {
+            return; // Cannot afford
         }
+
         let item = self.shop.remove(index);
+        self.money -= item.cost;
 
         let kind = match item.node {
             ShopNode::FuelSmall => NodeKind::Fuel(Bounded::new_max(self.config.fuel_small_amount)),
@@ -43,10 +49,23 @@ impl Model {
 
         let position = self.nodes.bounds.center();
         let position = Aabb2::point(position).extend_symmetric(vec2(1.0, 1.0).as_r32() / r32(2.0));
+        let mk_cons = |cons: &[((f32, f32), ConnectionKind)]| {
+            cons.iter()
+                .map(|&((x, y), kind)| NodeConnection {
+                    offset: vec2(x, y).as_r32(),
+                    kind,
+                    connected_to: None,
+                })
+                .collect::<Vec<_>>()
+        };
         self.nodes.nodes.push(Node {
             position,
             kind,
-            connections: vec![],
+            connections: match item.node {
+                ShopNode::FuelSmall | ShopNode::Fuel => {
+                    mk_cons(&[((0.0, 0.5), ConnectionKind::Fuel)])
+                }
+            },
         });
     }
 
