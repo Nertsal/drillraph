@@ -313,6 +313,9 @@ impl GameState {
                 }
             }
             DragTarget::NodeConnection { node, conn } => {
+                if !matches!(self.model.phase, Phase::Setup) {
+                    return;
+                }
                 let Some(node) = self.model.nodes.nodes.get_mut(node) else {
                     return;
                 };
@@ -338,6 +341,9 @@ impl GameState {
         match drag.target {
             DragTarget::Node { .. } => {}
             DragTarget::NodeConnection { node, conn } => {
+                if !matches!(self.model.phase, Phase::Setup) {
+                    return;
+                }
                 if let Some(DragTarget::NodeConnection {
                     node: to_node,
                     conn: to_conn,
