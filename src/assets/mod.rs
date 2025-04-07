@@ -3,6 +3,7 @@ mod font;
 pub use self::font::*;
 
 use crate::{
+    game::Controls,
     model::{Config, ConnectionColor, ResourceKind},
     prelude::Color,
 };
@@ -47,6 +48,7 @@ fn load_gif(
 #[derive(geng::asset::Load)]
 pub struct Assets {
     pub palette: Palette,
+    pub controls: Controls,
     pub shaders: Shaders,
     pub sprites: Sprites,
     pub config: Config,

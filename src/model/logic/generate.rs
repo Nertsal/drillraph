@@ -5,8 +5,8 @@ impl Model {
         log::debug!("Generating next level..");
 
         // Reset drill
-        self.drill.position = vec2::ZERO;
-        self.drill.rotation = Angle::from_degrees(r32(-90.0));
+        self.drill.collider.position = vec2::ZERO;
+        self.drill.collider.rotation = Angle::from_degrees(r32(-90.0));
 
         // Reset nodes
         for node in &mut self.nodes.nodes {
@@ -18,7 +18,7 @@ impl Model {
             }
         }
 
-        self.camera.center = self.drill.position.as_f32();
+        self.camera.center = self.drill.collider.position.as_f32();
         self.bounds = Aabb2::from_corners(
             vec2(-self.config.map_width / r32(2.0), r32(-10000.0)),
             vec2(self.config.map_width / r32(2.0), r32(10000.0)),

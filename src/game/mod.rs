@@ -1,5 +1,15 @@
 use crate::{model::*, prelude::*, render::util::UtilRender, ui::layout::*};
 
+use geng_utils::key::EventKey;
+
+#[derive(geng::asset::Load, Serialize, Deserialize, Debug, Clone)]
+#[load(serde = "ron")]
+pub struct Controls {
+    pub launch: Vec<EventKey>,
+    pub left: Vec<EventKey>,
+    pub right: Vec<EventKey>,
+}
+
 pub struct GameState {
     context: Context,
     util: UtilRender,
@@ -100,14 +110,18 @@ impl GameState {
         }
 
         // Drill
-        self.util
-            .draw_collider(&model.drill, palette.drill, &model.camera, framebuffer);
+        self.util.draw_collider(
+            &model.drill.collider,
+            palette.drill,
+            &model.camera,
+            framebuffer,
+        );
 
         // Drill vision
         self.context.geng.draw2d().circle_with_cut(
             framebuffer,
             &model.camera,
-            model.drill.position.as_f32(),
+            model.drill.collider.position.as_f32(),
             model.vision_radius.as_f32() * 0.97,
             model.vision_radius.as_f32(),
             palette.vision_circle,
@@ -330,6 +344,11 @@ impl geng::State for GameState {
     }
 
     fn handle_event(&mut self, event: geng::Event) {
+        let controls = &self.context.assets.controls;
+        if geng_utils::key::is_event_press(&event, &controls.launch) {
+            self.model.launch_drill();
+        }
+
         match event {
             geng::Event::MousePress { .. } => {
                 self.mouse_down();

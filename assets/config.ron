@@ -1,5 +1,7 @@
 (
     drill_size: 0.3,
+    drill_speed: 2.5,
+    drill_acceleration: 3.0,
     map_width: 5.0,
 
     minerals: {

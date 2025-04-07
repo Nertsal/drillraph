@@ -14,6 +14,8 @@ pub type Fuel = R32;
 #[load(serde = "ron")]
 pub struct Config {
     pub drill_size: Coord,
+    pub drill_speed: Coord,
+    pub drill_acceleration: Coord,
     pub map_width: Coord,
     pub minerals: HashMap<MineralKind, Vec<MineralConfig>>,
 }
@@ -79,9 +81,23 @@ pub enum NodeKind {
     Fuel(Bounded<Fuel>),
 }
 
+#[derive(Debug)]
+pub enum Phase {
+    Setup,
+    Drill,
+}
+
+#[derive(Debug)]
+pub struct Drill {
+    pub collider: Collider,
+    pub speed: Coord,
+    pub target_speed: Coord,
+}
+
 pub struct Model {
     pub config: Config,
     pub simulation_time: FloatTime,
+    pub phase: Phase,
 
     pub camera: Camera2d,
     pub bounds: Aabb2<Coord>,
@@ -89,7 +105,7 @@ pub struct Model {
     pub depth_generated: Coord,
     pub nodes: Nodes,
 
-    pub drill: Collider,
+    pub drill: Drill,
     pub vision_radius: Coord,
     pub minerals: Vec<Mineral>,
 }
@@ -100,6 +116,7 @@ impl Model {
         let mut model = Self {
             config: config.clone(),
             simulation_time: FloatTime::ZERO,
+            phase: Phase::Setup,
 
             camera: Camera2d {
                 center: vec2::ZERO,
@@ -141,7 +158,11 @@ impl Model {
                 ],
             },
 
-            drill: Collider::circle(vec2::ZERO, config.drill_size),
+            drill: Drill {
+                collider: Collider::circle(vec2::ZERO, config.drill_size),
+                speed: Coord::ZERO,
+                target_speed: Coord::ZERO,
+            },
             vision_radius: r32(2.0),
             minerals: vec![],
         };
