@@ -324,4 +324,54 @@ impl UtilRender {
             position.y -= options.size; // NOTE: larger than text size to space out better
         }
     }
+
+    pub fn draw_chain(
+        &self,
+        framebuffer: &mut ugli::Framebuffer,
+        camera: &impl geng::AbstractCamera2d,
+        chain: &draw2d::Chain,
+    ) {
+        let framebuffer_size = framebuffer.size();
+        ugli::draw(
+            framebuffer,
+            &self.context.assets.shaders.solid,
+            ugli::DrawMode::Triangles,
+            &ugli::VertexBuffer::new_dynamic(self.context.geng.ugli(), chain.vertices.clone()),
+            (
+                ugli::uniforms! {
+                    u_color: Rgba::WHITE,
+                    u_framebuffer_size: framebuffer_size,
+                    u_model_matrix: chain.transform,
+                },
+                camera.uniforms(framebuffer_size.map(|x| x as f32)),
+            ),
+            ugli::DrawParameters {
+                blend_mode: None,
+                ..Default::default()
+            },
+        );
+    }
+
+    pub fn draw_quad_outline(
+        &self,
+        quad: Aabb2<impl Float>,
+        outline_width: f32,
+        color: Color,
+        camera: &impl geng::AbstractCamera2d,
+        framebuffer: &mut ugli::Framebuffer,
+    ) {
+        let quad = quad.map(|x| x.as_f32());
+        let vec2(width, height) = quad.size();
+        let [a, b, c, d] = Aabb2::ZERO
+            .extend_symmetric(vec2(width, height) / 2.0)
+            .extend_uniform(-outline_width / 2.0)
+            .corners();
+        let m = (a + b) / 2.0;
+        self.draw_chain(
+            framebuffer,
+            camera,
+            &draw2d::Chain::new(Chain::new(vec![m, b, c, d, a, m]), outline_width, color, 1)
+                .translate(quad.center()),
+        );
+    }
 }

@@ -9,6 +9,9 @@ gold_text = "#D9886A"
 drill = "#FEF375"
 vision_circle = "#FEF375"
 
+fuel_back = "#5C4482"
+fuel_front = "#CB62A8"
+
 iron = "#EA795D"
 rock = "#444444"
 

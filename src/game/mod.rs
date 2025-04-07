@@ -245,20 +245,36 @@ impl GameState {
 
         for (node_i, node) in nodes.nodes.iter().enumerate() {
             // Body
-            let color = match &node.kind {
-                NodeKind::Power => palette.nodes.power,
-                NodeKind::Fuel(..) => palette.nodes.fuel,
+            let texture = match &node.kind {
+                NodeKind::Power => &sprites.fuel_small_node,
+                NodeKind::Fuel(..) => &sprites.fuel_normal_node,
             };
             let position =
                 Aabb2::from_corners(to_screen(node.position.min), to_screen(node.position.max));
-            self.util.draw_nine_slice(
-                position,
-                color,
-                &sprites.border_thinner,
+            self.util.draw_texture_pp(
+                texture,
+                position.center(),
+                vec2(0.5, 0.5),
+                Angle::ZERO,
                 pixel_scale,
                 &geng::PixelPerfectCamera,
                 framebuffer,
             );
+
+            // let color = match &node.kind {
+            //     NodeKind::Power => palette.nodes.power,
+            //     NodeKind::Fuel(..) => palette.nodes.fuel,
+            // };
+            // let position =
+            //     Aabb2::from_corners(to_screen(node.position.min), to_screen(node.position.max));
+            // self.util.draw_nine_slice(
+            //     position,
+            //     color,
+            //     &sprites.border_thinner,
+            //     pixel_scale,
+            //     &geng::PixelPerfectCamera,
+            //     framebuffer,
+            // );
 
             // Connections
             for (conn_i, connection) in node.connections.iter().enumerate() {
@@ -322,24 +338,22 @@ impl GameState {
                     .position
                     .as_f32()
                     .extend_uniform(-0.1)
-                    .cut_top(0.15)
+                    .extend_up(-0.075)
                     .as_r32();
-                let mut pos = Aabb2::from_corners(to_screen(pos.min), to_screen(pos.max));
-                self.util.draw_nine_slice(
+                let mut pos = Aabb2::from_corners(to_screen(pos.min), to_screen(pos.max))
+                    .with_height(pixel_scale * 4.0, 1.0);
+                self.util.draw_quad_outline(
                     pos,
-                    color,
-                    &sprites.border_thinner,
                     pixel_scale,
+                    palette.fuel_back,
                     &geng::PixelPerfectCamera,
                     framebuffer,
                 );
-                self.util.draw_nine_slice(
-                    pos.split_left(fuel.get_ratio().as_f32()),
-                    color,
-                    &sprites.fill_thinner,
-                    pixel_scale,
-                    &geng::PixelPerfectCamera,
+                self.context.geng.draw2d().quad(
                     framebuffer,
+                    &geng::PixelPerfectCamera,
+                    pos.split_left(fuel.get_ratio().as_f32()),
+                    palette.fuel_front,
                 );
             }
         }

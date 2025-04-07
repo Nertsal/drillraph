@@ -66,6 +66,7 @@ pub struct Shaders {
     pub texture: Rc<ugli::Program>,
     pub ellipse: Rc<ugli::Program>,
     pub masked: Rc<ugli::Program>,
+    pub solid: Rc<ugli::Program>,
 }
 
 #[derive(geng::asset::Load)]
@@ -82,6 +83,8 @@ pub struct Fonts {
 #[derive(geng::asset::Load)]
 pub struct Sprites {
     pub coin: PixelTexture,
+    pub fuel_small_node: PixelTexture,
+    pub fuel_normal_node: PixelTexture,
     pub fill_thinner: PixelTexture,
     pub border_thinner: PixelTexture,
 }
@@ -99,6 +102,9 @@ pub struct Palette {
 
     pub drill: Color,
     pub vision_circle: Color,
+
+    pub fuel_back: Color,
+    pub fuel_front: Color,
 
     pub iron: Color,
     pub rock: Color,
