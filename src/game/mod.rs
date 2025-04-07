@@ -611,6 +611,13 @@ impl GameState {
             let texture = match item.item.node {
                 ShopNode::FuelSmall => &sprites.fuel_small_node,
                 ShopNode::Fuel => &sprites.fuel_normal_node,
+                ShopNode::TurnLeft => &sprites.turn_left_button_normal,
+                ShopNode::TurnRight => &sprites.turn_right_button_normal,
+                ShopNode::Battery => &sprites.battery_node,
+                ShopNode::Upgrade => &sprites.upgrade_node,
+                ShopNode::Speed => &sprites.drill_0_speed,
+                ShopNode::Light => &sprites.drill_0_light,
+                ShopNode::Sprint => &sprites.sprint_node,
             };
             let size = texture.size().as_f32() * pixel_scale;
             row_height = row_height.max(size.y + cost_height);

@@ -69,6 +69,14 @@ pub struct ShopItemTracked {
 pub enum ShopNode {
     FuelSmall,
     Fuel,
+    TurnLeft,
+    TurnRight,
+    Battery,
+    Upgrade,
+    Speed,
+    Light,
+    Sprint,
+    // CoalFuel
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]

@@ -124,6 +124,15 @@ impl Model {
         let kind = match item.item.node {
             ShopNode::FuelSmall => NodeKind::Fuel(Bounded::new_max(self.config.fuel_small_amount)),
             ShopNode::Fuel => NodeKind::Fuel(Bounded::new_max(self.config.fuel_normal_amount)),
+            ShopNode::TurnLeft => NodeKind::TurnLeft,
+            ShopNode::TurnRight => NodeKind::TurnRight,
+            ShopNode::Battery => NodeKind::Battery,
+            ShopNode::Upgrade => NodeKind::Upgrade,
+            ShopNode::Speed => NodeKind::Speed { level: 0 },
+            ShopNode::Light => NodeKind::Vision { level: 0 },
+            ShopNode::Sprint => NodeKind::Sprint {
+                cooldown: Bounded::new_zero(r32(1.0)),
+            },
         };
 
         let position = self.nodes.bounds.center();
@@ -144,6 +153,21 @@ impl Model {
                 ShopNode::FuelSmall | ShopNode::Fuel => {
                     mk_cons(&[((0.0, 0.5), ConnectionKind::Fuel)])
                 }
+                ShopNode::TurnLeft | ShopNode::TurnRight | ShopNode::Battery | ShopNode::Sprint => {
+                    mk_cons(&[
+                        ((0.0, 0.5), ConnectionKind::Normal),
+                        ((1.0, 0.5), ConnectionKind::Normal),
+                    ])
+                }
+                ShopNode::Upgrade => mk_cons(&[
+                    ((0.5, 0.0), ConnectionKind::Upgrade),
+                    ((0.5, 1.0), ConnectionKind::Upgrade),
+                ]),
+                ShopNode::Speed | ShopNode::Light => mk_cons(&[
+                    ((0.0, 0.5), ConnectionKind::Modifier),
+                    ((0.5, 1.0), ConnectionKind::Upgrade),
+                    ((1.0, 0.5), ConnectionKind::Fuel),
+                ]),
             },
         });
     }
