@@ -4,6 +4,7 @@
     drill_size: 0.3,
     drill_speed: 2.5,
     drill_acceleration: 3.0,
+    drill_rotation_speed: 3.0,
 
     fuel_small_amount: 2.0,
     fuel_normal_amount: 5.0,

@@ -20,6 +20,7 @@ pub struct Config {
     pub drill_size: Coord,
     pub drill_speed: Coord,
     pub drill_acceleration: Coord,
+    pub drill_rotation_speed: Coord,
 
     pub fuel_small_amount: Fuel,
     pub fuel_normal_amount: Fuel,
@@ -106,6 +107,7 @@ pub struct NodeConnection {
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Hash)]
 pub enum ConnectionKind {
+    Normal,
     Fuel,
 }
 
@@ -114,6 +116,8 @@ pub enum NodeKind {
     Power,
     Fuel(Bounded<Fuel>),
     Shop { level: usize },
+    TurnLeft,
+    TurnRight,
 }
 
 #[derive(Debug)]
@@ -182,11 +186,18 @@ impl Model {
                     Node {
                         position: Aabb2::ZERO.extend_right(1.0).extend_down(1.0).as_r32(),
                         kind: NodeKind::Power,
-                        connections: vec![NodeConnection {
-                            offset: vec2(1.0, 0.5).as_r32(),
-                            kind: ConnectionKind::Fuel,
-                            connected_to: None,
-                        }],
+                        connections: vec![
+                            NodeConnection {
+                                offset: vec2(1.0, 0.5).as_r32(),
+                                kind: ConnectionKind::Fuel,
+                                connected_to: None,
+                            },
+                            NodeConnection {
+                                offset: vec2(0.5, 0.0).as_r32(),
+                                kind: ConnectionKind::Normal,
+                                connected_to: None,
+                            },
+                        ],
                     },
                     Node {
                         position: Aabb2::point(vec2(0.0, -10.0))

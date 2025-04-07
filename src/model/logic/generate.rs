@@ -17,6 +17,7 @@ impl Model {
                 NodeKind::Fuel(bounded) => {
                     bounded.set_ratio(r32(1.0));
                 }
+                NodeKind::TurnLeft | NodeKind::TurnRight => {}
             }
         }
 

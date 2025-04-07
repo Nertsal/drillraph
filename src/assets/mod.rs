@@ -106,6 +106,12 @@ pub struct Sprites {
 
     pub close_button_normal: PixelTexture,
     pub close_button_pressed: PixelTexture,
+
+    pub turn_node: PixelTexture,
+    pub turn_left_button_normal: PixelTexture,
+    pub turn_left_button_pressed: PixelTexture,
+    pub turn_right_button_normal: PixelTexture,
+    pub turn_right_button_pressed: PixelTexture,
 }
 
 #[derive(geng::asset::Load, Serialize, Deserialize, Debug, Clone)]

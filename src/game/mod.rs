@@ -32,6 +32,7 @@ pub struct GameState {
     model: Model,
     hovering: Option<DragTarget>,
     drag: Option<Drag>,
+    turn_input: R32,
 
     screen: Aabb2<f32>,
     ui_view: Aabb2<f32>,
@@ -70,6 +71,7 @@ impl GameState {
             model: Model::new(context.clone()),
             hovering: None,
             drag: None,
+            turn_input: R32::ZERO,
 
             cursor_screen_pos: vec2::ZERO,
             cursor_ui_pos: vec2::ZERO,
@@ -275,6 +277,7 @@ impl GameState {
                         &sprites.fuel_normal_node
                     }
                 }
+                NodeKind::TurnLeft | NodeKind::TurnRight => &sprites.turn_node,
             };
             let position = node.position.map_bounds(to_screen);
             let position = self.util.draw_texture_pp(
@@ -301,7 +304,11 @@ impl GameState {
                     .context
                     .geng
                     .window()
-                    .is_button_pressed(geng::MouseButton::Left);
+                    .is_button_pressed(geng::MouseButton::Left)
+                || matches!(
+                    self.drag.as_ref().map(|drag|&drag.target),
+                    Some(DragTarget::Node { index, .. }) if *index == node_i
+                );
 
             let position = node.position.map_bounds(to_screen);
 
@@ -363,25 +370,28 @@ impl GameState {
                 }
             }
 
+            let node_button = |normal, pressed, framebuffer: &mut ugli::Framebuffer| {
+                let texture = if is_pressed { pressed } else { normal };
+                let mut pixel_scale = pixel_scale;
+                if !is_pressed && is_hovered {
+                    pixel_scale *= 1.25;
+                }
+                self.util.draw_texture_pp(
+                    texture,
+                    position.center(),
+                    vec2(0.5, 0.5),
+                    Angle::ZERO,
+                    pixel_scale,
+                    Color::WHITE,
+                    &geng::PixelPerfectCamera,
+                    framebuffer,
+                );
+            };
             match &node.kind {
                 NodeKind::Power => {
-                    let texture = if is_pressed {
-                        &sprites.power_button_pressed
-                    } else {
-                        &sprites.power_button_normal
-                    };
-                    let mut pixel_scale = pixel_scale;
-                    if !is_pressed && is_hovered {
-                        pixel_scale *= 1.25;
-                    }
-                    self.util.draw_texture_pp(
-                        texture,
-                        position.center(),
-                        vec2(0.5, 0.5),
-                        Angle::ZERO,
-                        pixel_scale,
-                        Color::WHITE,
-                        &geng::PixelPerfectCamera,
+                    node_button(
+                        &sprites.power_button_normal,
+                        &sprites.power_button_pressed,
                         framebuffer,
                     );
                 }
@@ -400,21 +410,7 @@ impl GameState {
                             &sprites.shop_2_button_pressed,
                         ),
                     };
-                    let texture = if is_pressed { pressed } else { normal };
-                    let mut pixel_scale = pixel_scale;
-                    if !is_pressed && is_hovered {
-                        pixel_scale *= 1.25;
-                    }
-                    self.util.draw_texture_pp(
-                        texture,
-                        position.center(),
-                        vec2(0.5, 0.5),
-                        Angle::ZERO,
-                        pixel_scale,
-                        Color::WHITE,
-                        &geng::PixelPerfectCamera,
-                        framebuffer,
-                    );
+                    node_button(normal, pressed, framebuffer);
                 }
                 NodeKind::Fuel(fuel) => {
                     let pos = node
@@ -437,6 +433,20 @@ impl GameState {
                         &geng::PixelPerfectCamera,
                         pos.split_left(fuel.get_ratio().as_f32()),
                         palette.fuel_front,
+                    );
+                }
+                NodeKind::TurnLeft => {
+                    node_button(
+                        &sprites.turn_left_button_normal,
+                        &sprites.turn_left_button_pressed,
+                        framebuffer,
+                    );
+                }
+                NodeKind::TurnRight => {
+                    node_button(
+                        &sprites.turn_right_button_normal,
+                        &sprites.turn_right_button_pressed,
+                        framebuffer,
                     );
                 }
             }
@@ -653,9 +663,23 @@ impl GameState {
             } => {
                 let nodes = &mut self.model.nodes;
                 if let Some(node) = nodes.nodes.get_mut(*index) {
-                    node.position = node.position.translate(
-                        self.cursor_ui_pos + *from_position - drag.from_ui - node.position.center(),
-                    );
+                    match node.kind {
+                        NodeKind::TurnLeft => {
+                            // Cannot drag turn button - turn
+                            self.turn_input += r32(1.0);
+                        }
+                        NodeKind::TurnRight => {
+                            // Cannot drag turn button - turn
+                            self.turn_input -= r32(1.0);
+                        }
+                        _ => {
+                            node.position = node.position.translate(
+                                self.cursor_ui_pos + *from_position
+                                    - drag.from_ui
+                                    - node.position.center(),
+                            );
+                        }
+                    }
                 }
             }
             DragTarget::NodeConnection { .. } => {}
@@ -701,6 +725,12 @@ impl GameState {
 impl geng::State for GameState {
     fn update(&mut self, delta_time: f64) {
         let delta_time = r32(delta_time as f32);
+        self.turn_input = R32::ZERO;
+        self.update_hover();
+        self.update_drag();
+        self.model.drill.collider.rotation += Angle::from_radians(
+            self.turn_input * self.model.config.drill_rotation_speed * delta_time,
+        );
         self.model.update(delta_time);
     }
 
