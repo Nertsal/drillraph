@@ -299,6 +299,7 @@ impl GameState {
                 }
                 NodeKind::TurnLeft | NodeKind::TurnRight => &sprites.turn_node,
                 NodeKind::Sprint { .. } => &sprites.sprint_node,
+                NodeKind::Upgrade => &sprites.upgrade_node,
             };
             let position = node.position.map_bounds(to_screen);
             let position = self.util.draw_texture_pp(
@@ -523,6 +524,7 @@ impl GameState {
                         palette.sprint_front,
                     );
                 }
+                NodeKind::Upgrade => {}
             }
         }
     }

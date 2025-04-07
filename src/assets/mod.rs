@@ -92,6 +92,7 @@ pub struct Sprites {
     pub border_game: PixelTexture,
     pub border_shop: PixelTexture,
     pub connect_dot: PixelTexture,
+    pub upgrade_node: PixelTexture,
 
     pub power_node: PixelTexture,
     pub power_button_normal: PixelTexture,

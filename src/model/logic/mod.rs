@@ -106,11 +106,18 @@ impl Model {
 
     fn update_nodes(&mut self, delta_time: FloatTime) {
         let bounds = self.nodes.bounds;
-        for node in &mut self.nodes.nodes {
+        let mut shop_i = 0;
+        for (node_i, node) in self.nodes.nodes.iter_mut().enumerate() {
             let offset = (bounds.min - node.position.min).map(|x| x.max(Coord::ZERO));
             node.position = node.position.translate(offset);
             let offset = (bounds.max - node.position.max).map(|x| x.min(Coord::ZERO));
             node.position = node.position.translate(offset);
+
+            match node.kind {
+                NodeKind::Shop { .. } => shop_i = node_i,
+                // NodeKind::Drill
+                _ => {}
+            }
 
             if let Phase::Drill = self.phase {
                 if let NodeKind::Sprint { cooldown } = &mut node.kind {
@@ -118,6 +125,40 @@ impl Model {
                         cooldown.change(-delta_time);
                     }
                 }
+            }
+        }
+
+        // Count upgrades
+        let count_upgrades = |index: usize| -> usize {
+            let mut to_check = VecDeque::new();
+            to_check.push_front(index);
+            let mut checked = HashSet::new();
+            let mut upgrades = 0;
+            while let Some(i) = to_check.pop_front() {
+                if !checked.insert(i) {
+                    continue;
+                }
+                let Some(node) = self.nodes.nodes.get(i) else {
+                    continue;
+                };
+                if let NodeKind::Upgrade = node.kind {
+                    upgrades += 1;
+                }
+                for conn in &node.connections {
+                    if let Some(to) = conn.connected_to {
+                        to_check.push_back(to);
+                    }
+                }
+            }
+            upgrades
+        };
+
+        let shop_upgrades = count_upgrades(shop_i);
+
+        // Update shop level
+        if let Some(node) = self.nodes.nodes.get_mut(shop_i) {
+            if let NodeKind::Shop { level } = &mut node.kind {
+                *level = shop_upgrades;
             }
         }
     }

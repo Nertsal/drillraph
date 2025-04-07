@@ -113,6 +113,7 @@ pub struct NodeConnection {
 pub enum ConnectionKind {
     Normal,
     Fuel,
+    Upgrade,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -123,6 +124,7 @@ pub enum NodeKind {
     TurnLeft,
     TurnRight,
     Sprint { cooldown: Bounded<FloatTime> },
+    Upgrade,
 }
 
 #[derive(Debug)]
