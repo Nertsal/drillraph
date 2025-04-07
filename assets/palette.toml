@@ -3,6 +3,9 @@ background = "#08080D"
 ui_view = "#085159"
 game_view = "#5F4A8C"
 
+depth_text = "#CB62A8"
+gold_text = "#D9886A"
+
 drill = "#FEF375"
 vision_circle = "#FEF375"
 
