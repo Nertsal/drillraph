@@ -281,7 +281,7 @@ impl UtilRender {
         framebuffer: &mut ugli::Framebuffer,
     ) {
         let text = text.as_ref();
-        let font = &self.context.assets.fonts.default;
+        let font = &self.context.assets.fonts.revolver;
         let framebuffer_size = framebuffer.size().as_f32();
 
         let position = position.map(Float::as_f32);

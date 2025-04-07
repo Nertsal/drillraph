@@ -71,6 +71,8 @@ pub struct Shaders {
 #[derive(geng::asset::Load)]
 pub struct Fonts {
     pub default: Rc<Font>,
+    pub revolver: Rc<Font>,
+    pub revolver_display: Rc<Font>,
 }
 
 #[derive(geng::asset::Load)]
