@@ -1,20 +1,42 @@
 (
     map_width: 10.0,
 
-    drill_size: 0.3,
+    drill_size: 0.5,
     drill_speed: 2.5,
+    drill_speed_0: 3.0,
+    drill_speed_1: 3.5,
+    drill_speed_2: 4.0,
     drill_acceleration: 3.0,
+    drill_rotation_speed: 3.0,
 
-    fuel_small_amount: 2.0,
-    fuel_normal_amount: 5.0,
+    vision: 2.0,
+    vision_0: 2.5,
+    vision_1: 3.0,
+    vision_2: 4.0,
+
+    sprint_boost: 1.5,
+    sprint_duration: 3.0,
+    sprint_cooldown: 5.0,
+
+    fuel_small_amount: 5.0,
+    fuel_normal_amount: 10.0,
 
     minerals: {
         Rock: (
             value: 0,
             generation: [],
         ),
-        Resource(Iron): (
+        Resource(Coal): (
             value: 1,
+            generation: [
+                (
+                    range: (-10, -1),
+                    density: 0.1,
+                ),
+            ],
+        ),
+        Resource(Iron): (
+            value: 5,
             generation: [
                 (
                     range: (-10, -1),
@@ -23,7 +45,7 @@
             ],
         ),
         Resource(Bronze): (
-            value: 3,
+            value: 20,
             generation: [
                 (
                     range: (-8, -4),
@@ -35,29 +57,109 @@
                 ),
             ],
         ),
+        Resource(Silver): (
+            value: 50,
+            generation: [
+            ],
+        ),
+        Resource(Gold): (
+            value: 100,
+            generation: [
+            ],
+        ),
     },
 
     shop_0: (
         slots: 2,
         items: [
             (
-                cost: 5,
-                node: FuelSmall,
+                cost: 10,
+                node: TurnLeft,
             ),
             (
-                cost: 10,
-                node: Fuel,
+                cost: 30,
+                node: Upgrade,
+            ),
+            (
+                cost: 30,
+                node: Battery,
+            ),
+            (
+                cost: 50,
+                node: Light,
             ),
         ]
     ),
 
     shop_1: (
         slots: 3,
-        items: []
+        items: [
+            (
+                cost: 100,
+                node: TurnRight,
+            ),
+            (
+                cost: 300,
+                node: Fuel,
+            ),
+            (
+                cost: 200,
+                node: Upgrade,
+            ),
+            (
+                cost: 200,
+                node: Battery,
+            ),
+            (
+                cost: 400,
+                node: Speed,
+            ),
+        ]
     ),
 
     shop_2: (
         slots: 4,
-        items: []
+        items: [
+            (
+                cost: 500,
+                node: Sprint,
+            ),
+            // (
+            //     cost: 1500,
+            //     node: CoalFuel,
+            // ),
+            (
+                cost: 800,
+                node: Battery,
+            ),
+            (
+                cost: 700,
+                node: Upgrade,
+            ),
+            (
+                cost: 900,
+                node: Upgrade,
+            ),
+            (
+                cost: 1000,
+                node: Upgrade,
+            ),
+            (
+                cost: 1000,
+                node: Upgrade,
+            ),
+            (
+                cost: 1500,
+                node: Upgrade,
+            ),
+            (
+                cost: 2500,
+                node: Upgrade,
+            ),
+            (
+                cost: 2500,
+                node: Upgrade,
+            ),
+        ]
     ),
 )
