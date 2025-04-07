@@ -6,26 +6,57 @@ pub struct GameState {
     ui_texture: ugli::Texture,
     game_texture: ugli::Texture,
 
+    cursor_screen_pos: vec2<f64>,
+    cursor_ui_pos: vec2<Coord>,
+    cursor_game_pos: vec2<Coord>,
+
     model: Model,
+    hovering: Option<DragTarget>,
+    drag: Option<Drag>,
 
     screen: Aabb2<f32>,
     ui_view: Aabb2<f32>,
     game_view: Aabb2<f32>,
 }
 
+#[derive(Debug)]
+pub struct Drag {
+    pub from_screen: vec2<f64>,
+    pub from_ui: vec2<Coord>,
+    pub target: DragTarget,
+}
+
+#[derive(Debug, Clone)]
+pub enum DragTarget {
+    Node {
+        index: usize,
+        from_position: vec2<Coord>,
+    },
+    NodeConnection {
+        node: usize,
+        conn: usize,
+    },
+}
+
 impl GameState {
     pub fn new(context: Context) -> Self {
         Self {
             model: Model::new(context.clone()),
+            hovering: None,
+            drag: None,
+
+            cursor_screen_pos: vec2::ZERO,
+            cursor_ui_pos: vec2::ZERO,
+            cursor_game_pos: vec2::ZERO,
+
+            screen: Aabb2::ZERO,
+            ui_view: Aabb2::ZERO,
+            game_view: Aabb2::ZERO,
 
             util: UtilRender::new(context.clone()),
             ui_texture: geng_utils::texture::new_texture(context.geng.ugli(), vec2(1, 1)),
             game_texture: geng_utils::texture::new_texture(context.geng.ugli(), vec2(1, 1)),
             context,
-
-            screen: Aabb2::ZERO,
-            ui_view: Aabb2::ZERO,
-            game_view: Aabb2::ZERO,
         }
     }
 
@@ -99,6 +130,8 @@ impl GameState {
         let palette = &self.context.assets.palette;
         let sprites = &self.context.assets.sprites;
 
+        ugli::clear(framebuffer, Some(palette.background), None, None);
+
         let to_screen = |pos: vec2<Coord>| {
             crate::util::world_to_screen(&nodes.camera, ui_size.as_f32(), pos.as_f32())
         };
@@ -161,9 +194,121 @@ impl GameState {
             }
         }
     }
+
+    fn mouse_down(&mut self) {
+        self.end_drag();
+        if let Some(target) = self.hovering.clone() {
+            if let DragTarget::Node { index, .. } = target {
+                if self
+                    .model
+                    .nodes
+                    .nodes
+                    .get(index)
+                    .is_none_or(|node| matches!(node.kind, NodeKind::Power))
+                {
+                    // Cannot drag the power node
+                    return;
+                }
+            }
+
+            let drag = Drag {
+                from_screen: self.cursor_screen_pos,
+                from_ui: self.cursor_ui_pos,
+                target,
+            };
+            log::debug!("Started drag: {:?}", drag);
+            self.drag = Some(drag);
+        }
+    }
+
+    fn end_drag(&mut self) {
+        let Some(drag) = self.drag.take() else { return };
+
+        match drag.target {
+            DragTarget::Node { .. } => {}
+            DragTarget::NodeConnection { node, conn } => todo!(),
+        }
+    }
+
+    fn update_drag(&mut self) {
+        let Some(drag) = &mut self.drag else { return };
+
+        match &mut drag.target {
+            DragTarget::Node {
+                index,
+                from_position,
+            } => {
+                let nodes = &mut self.model.nodes;
+                if let Some(node) = nodes.nodes.get_mut(*index) {
+                    node.position = node.position.translate(
+                        self.cursor_ui_pos + *from_position - drag.from_ui - node.position.center(),
+                    );
+                }
+            }
+            DragTarget::NodeConnection { node, conn } => todo!(),
+        }
+    }
+
+    fn update_hover(&mut self) {
+        self.hovering = None;
+
+        for (node_i, node) in self.model.nodes.nodes.iter().enumerate() {
+            for (conn_i, connection) in node.connections.iter().enumerate() {
+                let delta = node.position.center() + connection.offset - self.cursor_ui_pos;
+                if delta.len() < r32(0.2) {
+                    self.hovering = Some(DragTarget::NodeConnection {
+                        node: node_i,
+                        conn: conn_i,
+                    });
+                    return;
+                }
+            }
+
+            if node.position.contains(self.cursor_ui_pos) {
+                self.hovering = Some(DragTarget::Node {
+                    index: node_i,
+                    from_position: node.position.center(),
+                });
+            }
+        }
+    }
 }
 
 impl geng::State for GameState {
+    fn handle_event(&mut self, event: geng::Event) {
+        match event {
+            geng::Event::MousePress { .. } => {
+                self.mouse_down();
+            }
+            geng::Event::MouseRelease { .. } => {
+                self.end_drag();
+            }
+            geng::Event::CursorMove { position } => {
+                self.cursor_screen_pos = position;
+                self.cursor_ui_pos = self
+                    .model
+                    .nodes
+                    .camera
+                    .screen_to_world(
+                        self.ui_texture.size().as_f32(),
+                        self.cursor_screen_pos.as_f32() - self.ui_view.bottom_left(),
+                    )
+                    .as_r32();
+                self.cursor_game_pos = self
+                    .model
+                    .camera
+                    .screen_to_world(
+                        self.game_texture.size().as_f32(),
+                        self.cursor_screen_pos.as_f32() - self.game_view.bottom_left(),
+                    )
+                    .as_r32();
+                self.update_hover();
+                self.update_drag();
+            }
+            _ => {}
+        }
+    }
+
     fn draw(&mut self, framebuffer: &mut ugli::Framebuffer) {
         self.layout(framebuffer.size());
 

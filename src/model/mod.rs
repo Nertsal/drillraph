@@ -116,15 +116,29 @@ impl Model {
                     rotation: Angle::ZERO,
                     fov: Camera2dFov::Vertical(11.0),
                 },
-                nodes: vec![Node {
-                    position: Aabb2::ZERO.extend_right(r32(1.0)).extend_down(r32(1.0)),
-                    kind: NodeKind::Power,
-                    connections: vec![NodeConnection {
-                        offset: vec2(0.5, 0.0).as_r32(),
-                        color: ConnectionColor::Blue,
-                        connected_to: None,
-                    }],
-                }],
+                nodes: vec![
+                    Node {
+                        position: Aabb2::ZERO.extend_right(1.0).extend_down(1.0).as_r32(),
+                        kind: NodeKind::Power,
+                        connections: vec![NodeConnection {
+                            offset: vec2(0.5, 0.0).as_r32(),
+                            color: ConnectionColor::Blue,
+                            connected_to: None,
+                        }],
+                    },
+                    Node {
+                        position: Aabb2::point(vec2(3.0, -4.0))
+                            .extend_right(2.0)
+                            .extend_down(1.0)
+                            .as_r32(),
+                        kind: NodeKind::Fuel(Bounded::new_max(r32(5.0))),
+                        connections: vec![NodeConnection {
+                            offset: vec2(-1.0, 0.0).as_r32(),
+                            color: ConnectionColor::Blue,
+                            connected_to: None,
+                        }],
+                    },
+                ],
             },
 
             drill: Collider::circle(vec2::ZERO, config.drill_size),
