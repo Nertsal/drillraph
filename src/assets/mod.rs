@@ -113,6 +113,11 @@ pub struct Sprites {
     pub turn_left_button_pressed: PixelTexture,
     pub turn_right_button_normal: PixelTexture,
     pub turn_right_button_pressed: PixelTexture,
+
+    pub iron_ore: PixelTexture,
+    pub bronze_ore: PixelTexture,
+    pub silver_ore: PixelTexture,
+    pub gold_ore: PixelTexture,
 }
 
 #[derive(geng::asset::Load, Serialize, Deserialize, Debug, Clone)]

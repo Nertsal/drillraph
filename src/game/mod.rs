@@ -139,11 +139,27 @@ impl GameState {
         // Minerals
         for mineral in &model.minerals {
             let color = match mineral.kind {
-                MineralKind::Resource(kind) => palette
-                    .resources
-                    .get(&kind)
-                    .copied()
-                    .unwrap_or(palette.default),
+                MineralKind::Resource(kind) => {
+                    let texture = match kind {
+                        ResourceKind::Coal => continue, // &sprites.coal,
+                        ResourceKind::Iron => &sprites.iron_ore,
+                        ResourceKind::Bronze => &sprites.bronze_ore,
+                        ResourceKind::Silver => &sprites.silver_ore,
+                        ResourceKind::Gold => &sprites.gold_ore,
+                        ResourceKind::Gem => continue, // &sprites.gem,
+                    };
+                    self.util.draw_texture_pp(
+                        texture,
+                        mineral.collider.position.as_f32(),
+                        vec2(0.5, 0.5),
+                        mineral.collider.rotation.as_f32(),
+                        1.0,
+                        Color::WHITE,
+                        &model.camera,
+                        &mut mask.color,
+                    );
+                    continue;
+                }
                 MineralKind::Rock => palette.rock,
             };
             self.util
@@ -153,12 +169,6 @@ impl GameState {
         self.mask.draw(ugli::DrawParameters::default(), framebuffer);
 
         // Drill
-        // self.util.draw_collider(
-        //     &model.drill.collider,
-        //     palette.drill,
-        //     &model.camera,
-        //     framebuffer,
-        // );
         self.util.draw_texture_pp(
             &sprites.drill,
             model.drill.collider.position.as_f32(),
