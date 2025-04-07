@@ -25,6 +25,7 @@ impl Model {
                 NodeKind::Drill { .. } => {}
                 NodeKind::Battery => {}
                 NodeKind::Vision { .. } => {}
+                NodeKind::Speed { .. } => {}
             }
         }
 

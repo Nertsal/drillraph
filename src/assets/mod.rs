@@ -105,6 +105,10 @@ pub struct Sprites {
     pub drill_1_light: PixelTexture,
     pub drill_2_light: PixelTexture,
 
+    pub drill_0_speed: PixelTexture,
+    pub drill_1_speed: PixelTexture,
+    pub drill_2_speed: PixelTexture,
+
     pub power_node: PixelTexture,
     pub power_button_normal: PixelTexture,
     pub power_button_pressed: PixelTexture,

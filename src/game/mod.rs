@@ -313,6 +313,11 @@ impl GameState {
                     1 => &sprites.drill_1_light,
                     _ => &sprites.drill_2_light,
                 },
+                NodeKind::Speed { level } => match level {
+                    0 => &sprites.drill_0_speed,
+                    1 => &sprites.drill_1_speed,
+                    _ => &sprites.drill_2_speed,
+                },
             };
             let position = node.position.map_bounds(to_screen);
             let position = self.util.draw_texture_pp(
@@ -566,6 +571,7 @@ impl GameState {
                 }
                 NodeKind::Battery => {}
                 NodeKind::Vision { .. } => {}
+                NodeKind::Speed { .. } => {}
             }
         }
     }

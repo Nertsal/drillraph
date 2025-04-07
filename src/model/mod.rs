@@ -19,6 +19,9 @@ pub struct Config {
 
     pub drill_size: Coord,
     pub drill_speed: Coord,
+    pub drill_speed_0: Coord,
+    pub drill_speed_1: Coord,
+    pub drill_speed_2: Coord,
     pub drill_acceleration: Coord,
     pub drill_rotation_speed: Coord,
 
@@ -27,7 +30,7 @@ pub struct Config {
     pub vision_1: Coord,
     pub vision_2: Coord,
 
-    pub sprint_speed: Coord,
+    pub sprint_boost: Coord,
     pub sprint_duration: Coord,
     pub sprint_cooldown: Coord,
 
@@ -144,6 +147,9 @@ pub enum NodeKind {
     Vision {
         level: usize,
     },
+    Speed {
+        level: usize,
+    },
 }
 
 #[derive(Debug)]
@@ -162,6 +168,7 @@ pub struct DrillSprint {
 pub struct Drill {
     pub collider: Collider,
     pub drill_level: ResourceKind,
+    pub max_speed: Coord,
     pub speed: Coord,
     pub target_speed: Coord,
     pub colliding_with: HashSet<usize>,
@@ -288,6 +295,7 @@ impl Model {
                 collider: Collider::circle(vec2::ZERO, config.drill_size),
                 drill_level: ResourceKind::Iron,
                 speed: Coord::ZERO,
+                max_speed: config.drill_speed,
                 target_speed: Coord::ZERO,
                 colliding_with: HashSet::new(),
                 sprint: None,

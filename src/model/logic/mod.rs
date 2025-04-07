@@ -96,8 +96,7 @@ impl Model {
             caused_by_node: node_i,
             duration: Bounded::new_max(self.config.sprint_duration),
         });
-        self.drill.speed = self.config.sprint_speed;
-        self.drill.target_speed = self.config.sprint_speed;
+        self.drill.speed += self.config.sprint_boost;
     }
 
     pub fn purchase_item(&mut self, index: usize) {
@@ -153,6 +152,7 @@ impl Model {
         let mut shop_i = 0;
         let mut drill_i = 0;
         let mut vision_i = None;
+        let mut speed_i = None;
         for (node_i, node) in self.nodes.nodes.iter_mut().enumerate() {
             let offset = (bounds.min - node.position.min).map(|x| x.max(Coord::ZERO));
             node.position = node.position.translate(offset);
@@ -163,6 +163,7 @@ impl Model {
                 NodeKind::Shop { .. } => shop_i = node_i,
                 NodeKind::Drill { .. } => drill_i = node_i,
                 NodeKind::Vision { .. } => vision_i = Some(node_i),
+                NodeKind::Speed { .. } => speed_i = Some(node_i),
                 _ => {}
             }
 
@@ -245,6 +246,22 @@ impl Model {
                 }
             }
         }
+
+        // Update speed level
+        if let Some(speed_i) = speed_i {
+            let speed_upgrades = count_nodes(&self.nodes, speed_i, CountNode::Upgrade);
+            if let Some(node) = self.nodes.nodes.get_mut(speed_i) {
+                if let NodeKind::Speed { level } = &mut node.kind {
+                    *level = speed_upgrades;
+                    self.drill.max_speed = match *level {
+                        0 => self.config.drill_speed,
+                        1 => self.config.drill_speed_0,
+                        2 => self.config.drill_speed_1,
+                        _ => self.config.drill_speed_2,
+                    };
+                }
+            }
+        }
     }
 
     fn update_camera(&mut self, _delta_time: FloatTime) {
@@ -254,9 +271,9 @@ impl Model {
     fn move_drill(&mut self, delta_time: FloatTime) {
         // Move and accelerate
         self.drill.target_speed = if self.drill.sprint.is_some() {
-            self.config.sprint_speed
+            self.drill.max_speed + self.config.sprint_boost
         } else {
-            self.config.drill_speed
+            self.drill.max_speed
         };
         self.drill.speed += (self.drill.target_speed - self.drill.speed)
             .clamp_abs(self.config.drill_acceleration * delta_time);
