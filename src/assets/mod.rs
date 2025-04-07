@@ -95,6 +95,7 @@ pub struct Sprites {
 
     pub upgrade_node: PixelTexture,
     pub battery_node: PixelTexture,
+    pub coal_fuel_node: PixelTexture,
 
     pub drill_iron: PixelTexture,
     pub drill_bronze: PixelTexture,

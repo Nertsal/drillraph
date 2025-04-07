@@ -16,6 +16,7 @@ pub type Fuel = R32;
 #[load(serde = "ron")]
 pub struct Config {
     pub map_width: Coord,
+    pub coal_fuel_value: Fuel,
 
     pub drill_size: Coord,
     pub drill_speed: Coord,
@@ -76,7 +77,7 @@ pub enum ShopNode {
     Speed,
     Light,
     Sprint,
-    // CoalFuel
+    CoalFuel,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -167,6 +168,7 @@ pub enum NodeKind {
     Speed {
         level: usize,
     },
+    CoalFuel(Bounded<Fuel>),
 }
 
 #[derive(Debug)]

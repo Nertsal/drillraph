@@ -318,6 +318,7 @@ impl GameState {
                     1 => &sprites.drill_1_speed,
                     _ => &sprites.drill_2_speed,
                 },
+                NodeKind::CoalFuel(..) => &sprites.coal_fuel_node,
             };
             let position = node.position.map_bounds(to_screen);
             let position = self.util.draw_texture_pp(
@@ -453,6 +454,29 @@ impl GameState {
                     node_button(normal, pressed, framebuffer);
                 }
                 NodeKind::Fuel(fuel) => {
+                    let pos = node
+                        .position
+                        .as_f32()
+                        .extend_uniform(-0.1)
+                        .extend_up(-0.075)
+                        .as_r32();
+                    let mut pos = Aabb2::from_corners(to_screen(pos.min), to_screen(pos.max))
+                        .with_height(pixel_scale * 4.0, 1.0);
+                    self.util.draw_quad_outline(
+                        pos,
+                        pixel_scale,
+                        palette.fuel_back,
+                        &geng::PixelPerfectCamera,
+                        framebuffer,
+                    );
+                    self.context.geng.draw2d().quad(
+                        framebuffer,
+                        &geng::PixelPerfectCamera,
+                        pos.split_left(fuel.get_ratio().as_f32()),
+                        palette.fuel_front,
+                    );
+                }
+                NodeKind::CoalFuel(fuel) => {
                     let pos = node
                         .position
                         .as_f32()
@@ -618,6 +642,7 @@ impl GameState {
                 ShopNode::Speed => &sprites.drill_0_speed,
                 ShopNode::Light => &sprites.drill_0_light,
                 ShopNode::Sprint => &sprites.sprint_node,
+                ShopNode::CoalFuel => &sprites.coal_fuel_node,
             };
             let size = texture.size().as_f32() * pixel_scale;
             row_height = row_height.max(size.y + cost_height);

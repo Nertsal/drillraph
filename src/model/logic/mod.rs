@@ -143,6 +143,9 @@ impl Model {
             ShopNode::Sprint => NodeKind::Sprint {
                 cooldown: Bounded::new_zero(r32(1.0)),
             },
+            ShopNode::CoalFuel => {
+                NodeKind::CoalFuel(Bounded::new_zero(self.config.fuel_normal_amount))
+            }
         };
 
         let position = self.nodes.bounds.center();
@@ -160,7 +163,7 @@ impl Model {
             position,
             kind,
             connections: match item.item.node {
-                ShopNode::FuelSmall | ShopNode::Fuel => {
+                ShopNode::FuelSmall | ShopNode::Fuel | ShopNode::CoalFuel => {
                     mk_cons(&[((0.0, 0.5), ConnectionKind::Fuel)])
                 }
                 ShopNode::TurnLeft | ShopNode::TurnRight => mk_cons(&[
@@ -391,6 +394,15 @@ impl Model {
                     color: palette.gold_text,
                     lifetime: Bounded::new_max(r32(1.0)),
                 });
+
+                if let MineralKind::Resource(ResourceKind::Coal) = mineral.kind {
+                    // Convert into fuel
+                    for node in &mut self.nodes.nodes {
+                        if let NodeKind::CoalFuel(fuel) = &mut node.kind {
+                            fuel.change(self.config.coal_fuel_value);
+                        }
+                    }
+                }
             }
         }
     }
@@ -413,7 +425,7 @@ impl Model {
                 }
             }
 
-            if let NodeKind::Fuel(fuel) = &mut node.kind {
+            if let NodeKind::Fuel(fuel) | NodeKind::CoalFuel(fuel) = &mut node.kind {
                 if fuel.is_above_min() {
                     fuel.change(-delta_time);
                     return;
