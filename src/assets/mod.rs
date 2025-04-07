@@ -89,6 +89,10 @@ pub struct Sprites {
     pub border_thinner: PixelTexture,
     pub border_ui: PixelTexture,
     pub border_game: PixelTexture,
+
+    pub power_node: PixelTexture,
+    pub power_button_normal: PixelTexture,
+    pub power_button_pressed: PixelTexture,
 }
 
 #[derive(geng::asset::Load, Serialize, Deserialize, Debug, Clone)]

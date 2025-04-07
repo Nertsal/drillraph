@@ -244,9 +244,20 @@ impl GameState {
         };
 
         for (node_i, node) in nodes.nodes.iter().enumerate() {
+            let is_hovered = matches!(
+                self.hovering,
+                Some(DragTarget::Node { index, .. }) if index == node_i
+            );
+            let is_pressed = is_hovered
+                && self
+                    .context
+                    .geng
+                    .window()
+                    .is_button_pressed(geng::MouseButton::Left);
+
             // Body
             let texture = match &node.kind {
-                NodeKind::Power => &sprites.fuel_small_node,
+                NodeKind::Power => &sprites.power_node,
                 NodeKind::Fuel(..) => &sprites.fuel_normal_node,
             };
             let position =
@@ -332,29 +343,50 @@ impl GameState {
                 }
             }
 
-            if let NodeKind::Fuel(fuel) = &node.kind {
-                // Fuel bar
-                let pos = node
-                    .position
-                    .as_f32()
-                    .extend_uniform(-0.1)
-                    .extend_up(-0.075)
-                    .as_r32();
-                let mut pos = Aabb2::from_corners(to_screen(pos.min), to_screen(pos.max))
-                    .with_height(pixel_scale * 4.0, 1.0);
-                self.util.draw_quad_outline(
-                    pos,
-                    pixel_scale,
-                    palette.fuel_back,
-                    &geng::PixelPerfectCamera,
-                    framebuffer,
-                );
-                self.context.geng.draw2d().quad(
-                    framebuffer,
-                    &geng::PixelPerfectCamera,
-                    pos.split_left(fuel.get_ratio().as_f32()),
-                    palette.fuel_front,
-                );
+            match &node.kind {
+                NodeKind::Power => {
+                    let texture = if is_pressed {
+                        &sprites.power_button_pressed
+                    } else {
+                        &sprites.power_button_normal
+                    };
+                    let mut pixel_scale = pixel_scale;
+                    if !is_pressed && is_hovered {
+                        pixel_scale *= 1.25;
+                    }
+                    self.util.draw_texture_pp(
+                        texture,
+                        position.center(),
+                        vec2(0.5, 0.5),
+                        Angle::ZERO,
+                        pixel_scale,
+                        &geng::PixelPerfectCamera,
+                        framebuffer,
+                    );
+                }
+                NodeKind::Fuel(fuel) => {
+                    let pos = node
+                        .position
+                        .as_f32()
+                        .extend_uniform(-0.1)
+                        .extend_up(-0.075)
+                        .as_r32();
+                    let mut pos = Aabb2::from_corners(to_screen(pos.min), to_screen(pos.max))
+                        .with_height(pixel_scale * 4.0, 1.0);
+                    self.util.draw_quad_outline(
+                        pos,
+                        pixel_scale,
+                        palette.fuel_back,
+                        &geng::PixelPerfectCamera,
+                        framebuffer,
+                    );
+                    self.context.geng.draw2d().quad(
+                        framebuffer,
+                        &geng::PixelPerfectCamera,
+                        pos.split_left(fuel.get_ratio().as_f32()),
+                        palette.fuel_front,
+                    );
+                }
             }
         }
     }
@@ -376,7 +408,8 @@ impl GameState {
                     .get(index)
                     .is_none_or(|node| matches!(node.kind, NodeKind::Power))
                 {
-                    // Cannot drag the power node
+                    // Cannot drag the power node - launch the drill instead
+                    self.model.launch_drill();
                     return;
                 }
             }
