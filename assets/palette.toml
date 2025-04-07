@@ -11,3 +11,10 @@ rock = "#444444"
 
 [resources]
 Iron = "#EA795D"
+
+[nodes]
+power = "#3BD97F"
+fuel = "#80DBF7"
+
+[nodes.connections]
+Blue = "#6079DC"

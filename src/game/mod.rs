@@ -3,6 +3,7 @@ use crate::{model::*, prelude::*, render::util::UtilRender, ui::layout::*};
 pub struct GameState {
     context: Context,
     util: UtilRender,
+    ui_texture: ugli::Texture,
     game_texture: ugli::Texture,
 
     model: Model,
@@ -18,6 +19,7 @@ impl GameState {
             model: Model::new(context.clone()),
 
             util: UtilRender::new(context.clone()),
+            ui_texture: geng_utils::texture::new_texture(context.geng.ugli(), vec2(1, 1)),
             game_texture: geng_utils::texture::new_texture(context.geng.ugli(), vec2(1, 1)),
             context,
 
@@ -80,6 +82,85 @@ impl GameState {
             palette.vision_circle,
         );
     }
+
+    fn draw_nodes(&mut self, pixel_scale: f32) {
+        geng_utils::texture::update_texture_size(
+            &mut self.ui_texture,
+            self.ui_view.size().map(|x| x.floor() as usize),
+            self.context.geng.ugli(),
+        );
+        let ui_size = self.ui_texture.size();
+        let framebuffer = &mut geng_utils::texture::attach_texture(
+            &mut self.ui_texture,
+            self.context.geng.ugli(),
+        );
+
+        let nodes = &self.model.nodes;
+        let palette = &self.context.assets.palette;
+        let sprites = &self.context.assets.sprites;
+
+        let to_screen = |pos: vec2<Coord>| {
+            crate::util::world_to_screen(&nodes.camera, ui_size.as_f32(), pos.as_f32())
+        };
+
+        for (node_i, node) in nodes.nodes.iter().enumerate() {
+            // Body
+            let color = match &node.kind {
+                NodeKind::Power => palette.nodes.power,
+                NodeKind::Fuel(..) => palette.nodes.fuel,
+            };
+            let position =
+                Aabb2::from_corners(to_screen(node.position.min), to_screen(node.position.max));
+            self.util.draw_nine_slice(
+                position,
+                color,
+                &sprites.border_thinner,
+                pixel_scale,
+                &geng::PixelPerfectCamera,
+                framebuffer,
+            );
+
+            // Connections
+            for connection in &node.connections {
+                let color = palette
+                    .nodes
+                    .connections
+                    .get(&connection.color)
+                    .copied()
+                    .unwrap_or(palette.default);
+                self.util.draw_circle_cut(
+                    framebuffer,
+                    &nodes.camera,
+                    mat3::translate((node.position.center() + connection.offset).as_f32())
+                        * mat3::scale_uniform(0.1),
+                    color,
+                    0.0,
+                );
+
+                let mut draw_connection = || -> Option<()> {
+                    let node_j = connection.connected_to?;
+                    if node_i > node_j {
+                        return None;
+                    }
+                    let from = node.position.center() + connection.offset;
+                    let to_node = nodes.nodes.get(node_j)?;
+                    let to_conn = to_node
+                        .connections
+                        .iter()
+                        .find(|conn| conn.connected_to == Some(node_i))?;
+                    let to = to_node.position.center() + to_conn.offset;
+                    self.context.geng.draw2d().draw2d(
+                        framebuffer,
+                        &nodes.camera,
+                        &draw2d::Segment::new(Segment(from.as_f32(), to.as_f32()), 0.1, color),
+                    );
+
+                    Some(())
+                };
+                draw_connection();
+            }
+        }
+    }
 }
 
 impl geng::State for GameState {
@@ -94,8 +175,19 @@ impl geng::State for GameState {
         let sprites = &context.assets.sprites;
         ugli::clear(framebuffer, Some(palette.background), None, None);
 
+        // Ui
+        self.draw_nodes(pixel_scale);
+        let target = self.util.draw_texture_pp(
+            &self.ui_texture,
+            self.ui_view.center(),
+            vec2(0.5, 0.5),
+            Angle::ZERO,
+            1.0,
+            &geng::PixelPerfectCamera,
+            framebuffer,
+        );
         self.util.draw_nine_slice(
-            self.ui_view,
+            target,
             palette.ui_view,
             &sprites.border_thinner,
             pixel_scale,
@@ -103,6 +195,7 @@ impl geng::State for GameState {
             framebuffer,
         );
 
+        // Game
         self.draw_game(pixel_scale);
         let target = self.util.draw_texture_pp(
             &self.game_texture,

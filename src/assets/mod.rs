@@ -3,7 +3,7 @@ mod font;
 pub use self::font::*;
 
 use crate::{
-    model::{Config, ResourceKind},
+    model::{Config, ConnectionColor, ResourceKind},
     prelude::Color,
 };
 
@@ -83,6 +83,16 @@ pub struct Palette {
     pub iron: Color,
     pub rock: Color,
     pub resources: HashMap<ResourceKind, Color>,
+
+    pub nodes: PaletteNodes,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct PaletteNodes {
+    pub power: Color,
+    pub fuel: Color,
+
+    pub connections: HashMap<ConnectionColor, Color>,
 }
 
 #[derive(Clone)]
