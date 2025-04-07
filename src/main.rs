@@ -14,6 +14,8 @@ use geng::prelude::*;
 
 const OPTIONS_STORAGE: &str = "options";
 
+const TARGET_SCREEN_SIZE: vec2<usize> = vec2(480, 320);
+
 #[derive(clap::Parser)]
 struct Opts {
     #[clap(flatten)]

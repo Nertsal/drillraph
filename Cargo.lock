@@ -2767,6 +2767,20 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "830d08ce1d1d941e6b30645f1a0eb5643013d835ce3779a5fc208261dbe10f55"
 
 [[package]]
+name = "ldjam57"
+version = "0.1.0"
+dependencies = [
+ "async-compat",
+ "async-executor",
+ "clap",
+ "geng",
+ "geng-utils",
+ "parry2d",
+ "rusttype",
+ "serde",
+]
+
+[[package]]
 name = "lebe"
 version = "0.5.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3052,20 +3066,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8c196769dd60fd4f363e11d948139556a344e79d451aeb2fa2fd040738ef7691"
 dependencies = [
  "jni-sys",
-]
-
-[[package]]
-name = "nertplate"
-version = "0.1.0"
-dependencies = [
- "async-compat",
- "async-executor",
- "clap",
- "geng",
- "geng-utils",
- "parry2d",
- "rusttype",
- "serde",
 ]
 
 [[package]]

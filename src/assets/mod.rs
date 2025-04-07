@@ -1,8 +1,10 @@
 mod font;
 
-use std::path::PathBuf;
-
 pub use self::font::*;
+
+use crate::prelude::Color;
+
+use std::path::PathBuf;
 
 use geng::prelude::*;
 use geng_utils::gif::GifFrame;
@@ -40,12 +42,34 @@ fn load_gif(
 }
 
 #[derive(geng::asset::Load)]
-pub struct Assets {}
+pub struct Assets {
+    pub palette: Palette,
+    pub shaders: Shaders,
+    pub sprites: Sprites,
+}
 
 impl Assets {
     pub async fn load(manager: &geng::asset::Manager) -> anyhow::Result<Self> {
         geng::asset::Load::load(manager, &run_dir().join("assets"), &()).await
     }
+}
+
+#[derive(geng::asset::Load)]
+pub struct Shaders {
+    pub texture: Rc<ugli::Program>,
+}
+
+#[derive(geng::asset::Load)]
+pub struct Sprites {
+    pub border_thinner: PixelTexture,
+}
+
+#[derive(geng::asset::Load, Serialize, Deserialize, Debug, Clone, Copy)]
+#[load(serde = "toml")]
+pub struct Palette {
+    pub background: Color,
+    pub ui_view: Color,
+    pub game_view: Color,
 }
 
 #[derive(Clone)]
