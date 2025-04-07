@@ -86,6 +86,7 @@ pub enum ConnectionColor {
 pub enum NodeKind {
     Power,
     Fuel(Bounded<Fuel>),
+    Shop { level: usize },
 }
 
 #[derive(Debug)]
@@ -155,6 +156,18 @@ impl Model {
                         kind: NodeKind::Power,
                         connections: vec![NodeConnection {
                             offset: vec2(1.0, 0.5).as_r32(),
+                            color: ConnectionColor::Blue,
+                            connected_to: None,
+                        }],
+                    },
+                    Node {
+                        position: Aabb2::point(vec2(0.0, -10.0))
+                            .extend_right(3.0)
+                            .extend_up(1.0)
+                            .as_r32(),
+                        kind: NodeKind::Shop { level: 0 },
+                        connections: vec![NodeConnection {
+                            offset: vec2(0.5, 1.0).as_r32(),
                             color: ConnectionColor::Blue,
                             connected_to: None,
                         }],

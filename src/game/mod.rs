@@ -249,6 +249,7 @@ impl GameState {
             // Body
             let texture = match &node.kind {
                 NodeKind::Power => &sprites.power_node,
+                NodeKind::Shop { .. } => &sprites.shop_0_node,
                 NodeKind::Fuel(..) => &sprites.fuel_normal_node,
             };
             let position = node.position.map_bounds(to_screen);
@@ -356,6 +357,36 @@ impl GameState {
                         framebuffer,
                     );
                 }
+                &NodeKind::Shop { level } => {
+                    let (normal, pressed) = match level {
+                        0 => (
+                            &sprites.shop_0_button_normal,
+                            &sprites.shop_0_button_pressed,
+                        ),
+                        1 => (
+                            &sprites.shop_1_button_normal,
+                            &sprites.shop_1_button_pressed,
+                        ),
+                        _ => (
+                            &sprites.shop_2_button_normal,
+                            &sprites.shop_2_button_pressed,
+                        ),
+                    };
+                    let texture = if is_pressed { pressed } else { normal };
+                    let mut pixel_scale = pixel_scale;
+                    if !is_pressed && is_hovered {
+                        pixel_scale *= 1.25;
+                    }
+                    self.util.draw_texture_pp(
+                        texture,
+                        position.center(),
+                        vec2(0.5, 0.5),
+                        Angle::ZERO,
+                        pixel_scale,
+                        &geng::PixelPerfectCamera,
+                        framebuffer,
+                    );
+                }
                 NodeKind::Fuel(fuel) => {
                     let pos = node
                         .position
@@ -383,6 +414,10 @@ impl GameState {
         }
     }
 
+    fn toggle_shop(&mut self) {
+        // TODO
+    }
+
     fn mouse_down(&mut self) {
         self.end_drag();
         if let Some(target) = self.hovering.clone() {
@@ -393,16 +428,21 @@ impl GameState {
     fn start_drag(&mut self, target: DragTarget) {
         match target {
             DragTarget::Node { index, .. } => {
-                if self
-                    .model
-                    .nodes
-                    .nodes
-                    .get(index)
-                    .is_none_or(|node| matches!(node.kind, NodeKind::Power))
-                {
-                    // Cannot drag the power node - launch the drill instead
-                    self.model.launch_drill();
+                let Some(node) = self.model.nodes.nodes.get(index) else {
                     return;
+                };
+                match node.kind {
+                    NodeKind::Power => {
+                        // Cannot drag the power node - launch the drill instead
+                        self.model.launch_drill();
+                        return;
+                    }
+                    NodeKind::Shop { .. } => {
+                        // Cannot drag the shop node - open the shop
+                        self.toggle_shop();
+                        return;
+                    }
+                    _ => (),
                 }
             }
             DragTarget::NodeConnection { node: node_i, conn } => {

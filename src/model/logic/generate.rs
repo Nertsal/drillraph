@@ -12,6 +12,7 @@ impl Model {
         for node in &mut self.nodes.nodes {
             match &mut node.kind {
                 NodeKind::Power => {}
+                NodeKind::Shop { .. } => {}
                 NodeKind::Fuel(bounded) => {
                     bounded.set_ratio(r32(1.0));
                 }
