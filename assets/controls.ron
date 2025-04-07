@@ -1,0 +1,5 @@
+(
+    launch: [Key(Space)],
+    left: [Key(A), Key(ArrowLeft)],
+    right: [Key(D), Key(ArrowRight)],
+)

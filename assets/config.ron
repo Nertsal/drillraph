@@ -1,0 +1,26 @@
+(
+    drill_size: 0.3,
+    drill_speed: 2.5,
+    drill_acceleration: 3.0,
+    map_width: 10.0,
+
+    minerals: {
+        Rock: [],
+        Resource(Iron): [
+            (
+                range: (-10, -1),
+                density: 0.3,
+            ),
+        ],
+        Resource(Bronze): [
+            (
+                range: (-8, -4),
+                density: 0.1,
+            ),
+            (
+                range: (-20, -8),
+                density: 0.3,
+            ),
+        ],
+    },
+)
