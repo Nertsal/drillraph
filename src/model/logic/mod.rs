@@ -356,6 +356,14 @@ impl Model {
     }
 
     fn collide_drill(&mut self, _delta_time: FloatTime) {
+        // Level bounds
+        let aabb = self.drill.collider.compute_aabb();
+        if aabb.min.x < self.bounds.min.x || aabb.max.x > self.bounds.max.x {
+            self.drill.collider.rotation =
+                Angle::from_degrees(r32(180.0)) - self.drill.collider.rotation;
+        }
+
+        // Minerals
         let mut collected = Vec::new();
         let mut collisions = HashSet::new();
         for (i, mineral) in self.minerals.iter().enumerate() {

@@ -155,6 +155,7 @@ pub struct Palette {
     pub depth_text: Color,
     pub gold_text: Color,
 
+    pub wall: Color,
     pub drill: Color,
     pub vision_circle: Color,
 

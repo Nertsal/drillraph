@@ -172,6 +172,32 @@ impl GameState {
 
         self.mask.draw(ugli::DrawParameters::default(), framebuffer);
 
+        // Level bounds
+        self.context.geng.draw2d().draw2d(
+            framebuffer,
+            &model.camera,
+            &draw2d::Segment::new(
+                Segment(
+                    vec2(model.bounds.min.x.as_f32(), model.camera.center.y + 20.0),
+                    vec2(model.bounds.min.x.as_f32(), model.camera.center.y - 20.0),
+                ),
+                0.2,
+                palette.wall,
+            ),
+        );
+        self.context.geng.draw2d().draw2d(
+            framebuffer,
+            &model.camera,
+            &draw2d::Segment::new(
+                Segment(
+                    vec2(model.bounds.max.x.as_f32(), model.camera.center.y + 20.0),
+                    vec2(model.bounds.max.x.as_f32(), model.camera.center.y - 20.0),
+                ),
+                0.2,
+                palette.wall,
+            ),
+        );
+
         // Drill
         self.util.draw_texture_pp(
             &sprites.drill,
