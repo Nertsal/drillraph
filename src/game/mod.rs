@@ -324,6 +324,11 @@ impl GameState {
 }
 
 impl geng::State for GameState {
+    fn update(&mut self, delta_time: f64) {
+        let delta_time = r32(delta_time as f32);
+        self.model.update(delta_time);
+    }
+
     fn handle_event(&mut self, event: geng::Event) {
         match event {
             geng::Event::MousePress { .. } => {

@@ -8,6 +8,16 @@ impl Model {
         self.drill.position = vec2::ZERO;
         self.drill.rotation = Angle::from_degrees(r32(-90.0));
 
+        // Reset nodes
+        for node in &mut self.nodes.nodes {
+            match &mut node.kind {
+                NodeKind::Power => {}
+                NodeKind::Fuel(bounded) => {
+                    bounded.set_ratio(r32(1.0));
+                }
+            }
+        }
+
         self.camera.center = self.drill.position.as_f32();
         self.bounds = Aabb2::from_corners(
             vec2(-self.config.map_width / r32(2.0), r32(-10000.0)),
