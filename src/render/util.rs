@@ -1,3 +1,5 @@
+use crate::model::{Collider, Shape};
+
 use super::*;
 
 #[derive(Debug, Clone, Copy)]
@@ -156,6 +158,91 @@ impl UtilRender {
             ugli::DrawParameters {
                 blend_mode: Some(ugli::BlendMode::straight_alpha()),
                 ..default()
+            },
+        );
+    }
+
+    pub fn draw_collider(
+        &self,
+        collider: &Collider,
+        color: Rgba<f32>,
+        camera: &impl geng::AbstractCamera2d,
+        framebuffer: &mut ugli::Framebuffer,
+    ) {
+        match collider.shape {
+            Shape::Circle { radius } => {
+                self.draw_circle_cut(
+                    framebuffer,
+                    camera,
+                    mat3::translate(collider.position.as_f32())
+                        * mat3::scale_uniform(radius.as_f32()),
+                    color,
+                    0.0,
+                );
+            }
+            Shape::Rectangle { width, height } => {
+                self.context.geng.draw2d().draw2d_transformed(
+                    framebuffer,
+                    camera,
+                    &draw2d::Quad::new(
+                        Aabb2::ZERO.extend_symmetric(vec2(width, height).as_f32() / 2.0),
+                        color,
+                    ),
+                    (mat3::translate(collider.position) * mat3::rotate(collider.rotation)).as_f32(),
+                );
+            }
+        }
+    }
+
+    pub fn draw_circle_cut(
+        &self,
+        framebuffer: &mut ugli::Framebuffer,
+        camera: &impl geng::AbstractCamera2d,
+        transform: mat3<f32>,
+        color: Color,
+        cut: f32,
+    ) {
+        self.draw_circle_arc(
+            framebuffer,
+            camera,
+            transform,
+            color,
+            cut,
+            Angle::from_radians(-std::f32::consts::PI)..=Angle::from_radians(std::f32::consts::PI),
+        );
+    }
+
+    pub fn draw_circle_arc(
+        &self,
+        framebuffer: &mut ugli::Framebuffer,
+        camera: &impl geng::AbstractCamera2d,
+        transform: mat3<f32>,
+        color: Color,
+        cut: f32,
+        range: RangeInclusive<Angle>,
+    ) {
+        let arc_min = range.start().as_radians();
+        let arc_max = range.end().as_radians();
+        let framebuffer_size = framebuffer.size();
+        ugli::draw(
+            framebuffer,
+            &self.context.assets.shaders.ellipse,
+            ugli::DrawMode::TriangleFan,
+            &self.unit_quad,
+            (
+                ugli::uniforms! {
+                    u_model_matrix: transform,
+                    u_color: color,
+                    u_framebuffer_size: framebuffer_size,
+                    u_inner_cut: cut,
+                    u_arc_min: arc_min,
+                    u_arc_max: arc_max,
+                },
+                camera.uniforms(framebuffer_size.map(|x| x as f32)),
+            ),
+            ugli::DrawParameters {
+                blend_mode: None,
+                ..Default::default()
             },
         );
     }

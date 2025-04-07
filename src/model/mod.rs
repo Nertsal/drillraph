@@ -11,9 +11,11 @@ pub type FloatTime = R32;
 pub struct Model {
     pub simulation_time: FloatTime,
 
+    pub camera: Camera2d,
     pub ground_level: Coord,
 
     pub drill: Collider,
+    pub vision_radius: Coord,
 }
 
 impl Model {
@@ -22,9 +24,15 @@ impl Model {
         Self {
             simulation_time: FloatTime::ZERO,
 
+            camera: Camera2d {
+                center: vec2::ZERO,
+                rotation: Angle::ZERO,
+                fov: Camera2dFov::Vertical(15.0),
+            },
             ground_level: Coord::ZERO,
 
             drill: Collider::circle(vec2::ZERO, config.drill_size),
+            vision_radius: r32(2.0),
         }
     }
 }

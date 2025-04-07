@@ -58,6 +58,7 @@ impl Assets {
 #[derive(geng::asset::Load)]
 pub struct Shaders {
     pub texture: Rc<ugli::Program>,
+    pub ellipse: Rc<ugli::Program>,
 }
 
 #[derive(geng::asset::Load)]
@@ -71,6 +72,11 @@ pub struct Palette {
     pub background: Color,
     pub ui_view: Color,
     pub game_view: Color,
+
+    pub drill: Color,
+    pub vision_circle: Color,
+
+    pub iron: Color,
 }
 
 #[derive(geng::asset::Load, Serialize, Deserialize, Debug, Clone, Copy)]

@@ -44,12 +44,27 @@ impl GameState {
 
         let palette = &self.context.assets.palette;
         let sprites = &self.context.assets.sprites;
+        let model = &self.model;
 
         let framebuffer = &mut geng_utils::texture::attach_texture(
             &mut self.game_texture,
             self.context.geng.ugli(),
         );
         ugli::clear(framebuffer, Some(palette.background), None, None);
+
+        // Drill
+        self.util
+            .draw_collider(&model.drill, palette.drill, &model.camera, framebuffer);
+
+        // Drill vision
+        self.context.geng.draw2d().circle_with_cut(
+            framebuffer,
+            &model.camera,
+            model.drill.position.as_f32(),
+            model.vision_radius.as_f32() * 0.97,
+            model.vision_radius.as_f32(),
+            palette.vision_circle,
+        );
     }
 }
 
