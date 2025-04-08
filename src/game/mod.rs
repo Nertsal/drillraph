@@ -716,7 +716,7 @@ impl GameState {
                 ShopNode::Upgrade => &sprites.upgrade_node,
                 ShopNode::Speed => &sprites.drill_0_speed,
                 ShopNode::Light => &sprites.drill_0_light,
-                ShopNode::Sprint => &sprites.sprint_node,
+                ShopNode::Sprint => &sprites.sprint_button_normal,
                 ShopNode::CoalFuel => &sprites.coal_fuel_node,
             };
             let size = texture.size().as_f32() * pixel_scale;
