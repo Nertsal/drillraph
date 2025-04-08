@@ -246,6 +246,7 @@ impl Model {
                     (CountNode::Power, NodeKind::Power)
                     | (CountNode::Upgrade, NodeKind::Upgrade)
                     | (CountNode::Battery, NodeKind::Battery) => upgrades += 1,
+                    (CountNode::Upgrade, _) if i != index => continue,
                     _ => {}
                 }
                 for conn in &node.connections {

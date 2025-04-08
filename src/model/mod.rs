@@ -308,7 +308,7 @@ impl Model {
                 ],
             },
 
-            money: 0,
+            money: 999,
             shop: Vec::new(),
             drill: Drill {
                 collider: Collider::circle(vec2::ZERO, config.drill_size),
