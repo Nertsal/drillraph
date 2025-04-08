@@ -844,6 +844,7 @@ impl GameState {
         };
         log::debug!("Started drag: {:?}", drag);
         self.drag = Some(drag);
+        self.context.assets.sounds.click.play();
     }
 
     fn end_drag(&mut self) {
@@ -888,6 +889,8 @@ impl GameState {
             }
             DragTarget::Shop { .. } => {}
         }
+
+        self.context.assets.sounds.release.play();
     }
 
     fn update_drag(&mut self) {
@@ -999,7 +1002,12 @@ impl geng::State for GameState {
                         self.cursor_screen_pos.as_f32() - self.game_view.bottom_left(),
                     )
                     .as_r32();
+
+                let was_hovering = self.hovering.is_some();
                 self.update_hover();
+                if !was_hovering && self.hovering.is_some() {
+                    self.context.assets.sounds.hover.play();
+                }
                 self.update_drag();
             }
             _ => {}

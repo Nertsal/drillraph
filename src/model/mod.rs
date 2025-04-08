@@ -198,6 +198,7 @@ pub struct Drill {
 }
 
 pub struct Model {
+    pub context: Context,
     pub config: Config,
     pub palette: Palette,
     pub simulation_time: FloatTime,
@@ -223,6 +224,7 @@ impl Model {
     pub fn new(context: Context) -> Self {
         let config = &context.assets.config;
         let mut model = Self {
+            context: context.clone(),
             config: config.clone(),
             palette: context.assets.palette.clone(),
             simulation_time: FloatTime::ZERO,

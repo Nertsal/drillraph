@@ -80,6 +80,7 @@ impl Model {
         log::debug!("Launch the drill!");
         self.phase = Phase::Drill;
         self.drill.target_speed = self.config.drill_speed;
+        self.context.assets.sounds.start.play();
     }
 
     pub fn start_sprint(&mut self, node_i: usize) {
@@ -186,11 +187,13 @@ impl Model {
                 ]),
             },
         });
+        self.context.assets.sounds.purchase.play();
     }
 
     fn end_drill_phase(&mut self) {
         let Phase::Drill = self.phase else { return };
         log::debug!("Ending drill phase");
+        self.context.assets.sounds.stop.play();
         self.phase = Phase::Setup;
         self.generate_level();
     }
@@ -372,11 +375,13 @@ impl Model {
         if aabb.min.x < self.bounds.min.x || aabb.max.x > self.bounds.max.x {
             self.drill.collider.rotation =
                 Angle::from_degrees(r32(180.0)) - self.drill.collider.rotation;
+            self.context.assets.sounds.bounce.play();
         }
 
         // Minerals
         let mut collected = Vec::new();
         let mut collisions = HashSet::new();
+        let mut bounce = false;
         for (i, mineral) in self.minerals.iter().enumerate() {
             if !mineral.collider.check(&self.drill.collider) {
                 continue;
@@ -393,11 +398,13 @@ impl Model {
                         collected.push(i);
                     } else {
                         // Bounce
+                        bounce = true;
                         self.drill.speed = r32(0.5);
                     }
                 }
                 MineralKind::Rock => {
                     // Bounce
+                    bounce = true;
                     self.drill.speed = r32(0.5);
                 }
             }
@@ -406,6 +413,11 @@ impl Model {
 
         let mut rng = thread_rng();
         let palette = &self.palette;
+        if bounce {
+            self.context.assets.sounds.collide.play();
+        } else if !collected.is_empty() {
+            self.context.assets.sounds.pickup.play();
+        }
         for i in collected.into_iter().rev() {
             let mineral = self.minerals.swap_remove(i);
             if let Some(config) = self.config.minerals.get(&mineral.kind) {

@@ -53,12 +53,26 @@ pub struct Assets {
     pub sprites: Sprites,
     pub config: Config,
     pub fonts: Fonts,
+    pub sounds: Sounds,
 }
 
 impl Assets {
     pub async fn load(manager: &geng::asset::Manager) -> anyhow::Result<Self> {
         geng::asset::Load::load(manager, &run_dir().join("assets"), &()).await
     }
+}
+
+#[derive(geng::asset::Load)]
+pub struct Sounds {
+    pub hover: Rc<geng::Sound>,
+    pub click: Rc<geng::Sound>,
+    pub release: Rc<geng::Sound>,
+    pub pickup: Rc<geng::Sound>,
+    pub purchase: Rc<geng::Sound>,
+    pub bounce: Rc<geng::Sound>,
+    pub collide: Rc<geng::Sound>,
+    pub start: Rc<geng::Sound>,
+    pub stop: Rc<geng::Sound>,
 }
 
 #[derive(geng::asset::Load)]
