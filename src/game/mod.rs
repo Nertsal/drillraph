@@ -901,8 +901,12 @@ impl GameState {
                 let nodes = &mut self.model.nodes;
                 if let Some(node) = nodes.nodes.get_mut(*index) {
                     match node.kind {
-                        NodeKind::TurnLeft => self.turn_input += r32(1.0),
-                        NodeKind::TurnRight => self.turn_input -= r32(1.0),
+                        NodeKind::TurnLeft if self.model.drill.can_turn_left => {
+                            self.turn_input += r32(1.0)
+                        }
+                        NodeKind::TurnRight if self.model.drill.can_turn_right => {
+                            self.turn_input -= r32(1.0)
+                        }
                         _ => {}
                     }
                     node.position = node.position.translate(

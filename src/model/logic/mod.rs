@@ -201,6 +201,8 @@ impl Model {
         let mut drill_i = 0;
         let mut vision_i = None;
         let mut speed_i = None;
+        let mut left_i = None;
+        let mut right_i = None;
         for (node_i, node) in self.nodes.nodes.iter_mut().enumerate() {
             let offset = (bounds.min - node.position.min).map(|x| x.max(Coord::ZERO));
             node.position = node.position.translate(offset);
@@ -212,6 +214,8 @@ impl Model {
                 NodeKind::Drill { .. } => drill_i = node_i,
                 NodeKind::Vision { .. } => vision_i = Some(node_i),
                 NodeKind::Speed { .. } => speed_i = Some(node_i),
+                NodeKind::TurnLeft => left_i = Some(node_i),
+                NodeKind::TurnRight => right_i = Some(node_i),
                 _ => {}
             }
 
@@ -323,6 +327,12 @@ impl Model {
         } else {
             self.drill.max_speed = self.config.drill_speed;
         }
+
+        // Update turns
+        self.drill.can_turn_left =
+            left_i.is_some_and(|left_i| count_nodes(&self.nodes, left_i, CountNode::Power) > 0);
+        self.drill.can_turn_right =
+            right_i.is_some_and(|right_i| count_nodes(&self.nodes, right_i, CountNode::Power) > 0);
     }
 
     fn update_camera(&mut self, _delta_time: FloatTime) {

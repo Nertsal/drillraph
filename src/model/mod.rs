@@ -193,6 +193,8 @@ pub struct Drill {
     pub colliding_with: HashSet<usize>,
     pub sprint: Option<DrillSprint>,
     pub vision_radius: Coord,
+    pub can_turn_left: bool,
+    pub can_turn_right: bool,
 }
 
 pub struct Model {
@@ -323,6 +325,8 @@ impl Model {
                 colliding_with: HashSet::new(),
                 sprint: None,
                 vision_radius: config.vision,
+                can_turn_left: false,
+                can_turn_right: false,
             },
             minerals: vec![],
 
