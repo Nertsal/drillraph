@@ -303,12 +303,16 @@ impl Model {
                             .extend_up(1.0)
                             .as_r32(),
                         kind: NodeKind::Shop { level: 0 },
-                        connections: vec![],
+                        connections: vec![NodeConnection {
+                            offset: vec2(0.5, 1.0).as_r32(),
+                            kind: ConnectionKind::Upgrade,
+                            connected_to: None,
+                        }],
                     },
                 ],
             },
 
-            money: 999,
+            money: 0,
             shop: Vec::new(),
             drill: Drill {
                 collider: Collider::circle(vec2::ZERO, config.drill_size),
