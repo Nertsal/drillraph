@@ -121,49 +121,38 @@ impl<T: 'static> geng::State for LoadingScreen<T> {
     }
 
     fn draw(&mut self, framebuffer: &mut ugli::Framebuffer) {
-        ugli::clear(framebuffer, Some(self.options.theme.dark), None, None);
+        let palette = &self.assets.palette;
+        ugli::clear(framebuffer, Some(palette.background), None, None);
 
         let framebuffer_size = framebuffer.size().as_f32();
         let font_size = framebuffer_size.y * 0.08;
-        let theme = self.options.theme;
 
         let screen = Aabb2::ZERO.extend_positive(framebuffer_size);
         let camera = &geng::PixelPerfectCamera;
 
         // Background
         {
-            let gif = &self.assets.background;
-            let duration: f32 = gif.iter().map(|frame| frame.duration).sum();
-            let mut time = (self.real_time as f32 / duration).fract() * duration;
-            if let Some(frame) = gif.iter().find(|frame| {
-                time -= frame.duration;
-                time <= 0.0
-            }) {
-                self.geng.draw2d().textured_quad(
-                    framebuffer,
-                    camera,
-                    screen,
-                    &frame.texture,
-                    Color::WHITE,
-                );
-            }
+            let texture = &self.assets.background;
+            self.geng
+                .draw2d()
+                .textured_quad(framebuffer, camera, screen, texture, Color::WHITE);
         }
 
         // Title
-        let title = geng_utils::pixel::pixel_perfect_aabb(
-            screen.align_pos(vec2(0.5, 0.8)),
-            vec2(0.5, 0.5),
-            self.assets.title.size() * 2 * (framebuffer.size().y / 360),
-            camera,
-            framebuffer_size,
-        );
-        self.geng.draw2d().textured_quad(
-            framebuffer,
-            camera,
-            title,
-            &self.assets.title,
-            theme.light,
-        );
+        // let title = geng_utils::pixel::pixel_perfect_aabb(
+        //     screen.align_pos(vec2(0.5, 0.8)),
+        //     vec2(0.5, 0.5),
+        //     self.assets.title.size() * 2 * (framebuffer.size().y / 360),
+        //     camera,
+        //     framebuffer_size,
+        // );
+        // self.geng.draw2d().textured_quad(
+        //     framebuffer,
+        //     camera,
+        //     title,
+        //     &self.assets.title,
+        //     theme.light,
+        // );
 
         // Funny text
         if let Some(text) = self.texts.get(self.current_text) {
@@ -173,7 +162,7 @@ impl<T: 'static> geng::State for LoadingScreen<T> {
                 camera,
                 text,
                 pos,
-                TextRenderOptions::new(font_size).color(theme.light),
+                TextRenderOptions::new(font_size).color(palette.gold_text),
             );
         }
     }
