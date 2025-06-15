@@ -289,7 +289,7 @@ impl GameState {
         );
 
         // Coins
-        let pos = self.ui_view.top_right() - vec2(1.5, 0.5) * font_size;
+        let pos = self.ui_view.top_right() - vec2(2.0, 0.5) * font_size;
         self.util.draw_texture_pp(
             &sprites.coin,
             pos - vec2(0.5, 0.0) * font_size,
