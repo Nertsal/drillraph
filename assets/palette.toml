@@ -17,6 +17,7 @@ sprint_back = "#8595A8" # Color of the unfilled sprint cooldown bar
 sprint_front = "#BAC6D4" # Color of the filled sprint cooldown bar
 
 battery_back = "#085159" # Color of the unfilled battery
+battery_critical = "#A40606" # Color of the blinking unfilled battery
 battery_front = "#3BD97F" # Color of the filled battery
 
 iron = "#EA795D" # Color of iron ore
@@ -31,5 +32,4 @@ Iron = "#EA795D"
 Normal = "#085159"
 Fuel = "#5c4482"
 Drill = "#913d5c"
-Modifier = "#913d5c"
 Upgrade = "#6079dc"
