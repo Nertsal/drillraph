@@ -159,6 +159,7 @@ pub struct Palette {
 
     pub battery_back: Color,
     pub battery_front: Color,
+    pub battery_critical: Color,
 
     pub sprint_back: Color,
     pub sprint_front: Color,

@@ -681,11 +681,21 @@ impl GameState {
                         );
                         position = position.translate(vec2(-5.0, 0.0) * pixel_scale);
                     }
+                    let blink = (self.real_time * self.context.assets.config.blink_frequency)
+                        .floor()
+                        .as_f32() as i64
+                        % 2
+                        == 0;
                     for _ in power.value()..power.max() {
+                        let color = if blink {
+                            palette.battery_critical
+                        } else {
+                            palette.battery_back
+                        };
                         self.util.draw_quad_outline(
                             position,
                             pixel_scale,
-                            palette.battery_back,
+                            color,
                             &geng::PixelPerfectCamera,
                             framebuffer,
                         );
