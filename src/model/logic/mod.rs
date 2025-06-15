@@ -52,7 +52,7 @@ impl Model {
                 }
                 for conn in &node.connections {
                     if let Some(to) = conn.connected_to {
-                        to_check.push_back(to);
+                        to_check.push_back(to.node);
                     }
                 }
             }
@@ -259,7 +259,7 @@ impl Model {
                 }
                 for conn in &node.connections {
                     if let Some(to) = conn.connected_to {
-                        to_check.push_back(to);
+                        to_check.push_back(to.node);
                     }
                 }
             }
@@ -463,7 +463,7 @@ impl Model {
 
             for conn in &node.connections {
                 if let Some(i) = conn.connected_to {
-                    to_check.push_back(i);
+                    to_check.push_back(i.node);
                 }
             }
 

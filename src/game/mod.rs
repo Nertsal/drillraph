@@ -443,16 +443,26 @@ impl GameState {
                 );
 
                 let mut draw_connection = |nodes: &Nodes| -> Option<()> {
-                    let node_j = connection.connected_to?;
-                    if node_i > node_j {
+                    let conn_to = connection.connected_to?;
+                    if node_i > conn_to.node {
                         return None;
                     }
                     let from = node.position.align_pos(connection.offset);
-                    let to_node = nodes.nodes.get(node_j)?;
-                    let to_conn = to_node
-                        .connections
-                        .iter()
-                        .find(|conn| conn.connected_to == Some(node_i))?;
+                    let to_node = nodes.nodes.get(conn_to.node)?;
+                    let to_conn = to_node.connections.get(conn_to.connection)?;
+                    if to_conn.connected_to
+                        != Some(ConnectionId {
+                            node: node_i,
+                            connection: conn_i,
+                        })
+                    {
+                        log::error!(
+                            "Invalid connection state between nodes {} and {}",
+                            node_i,
+                            conn_to.node
+                        );
+                        return None;
+                    }
                     let to = to_node.position.align_pos(to_conn.offset);
                     self.context.geng.draw2d().draw2d(
                         framebuffer,
@@ -809,23 +819,36 @@ impl GameState {
                     _ => (),
                 }
             }
-            DragTarget::NodeConnection { node: node_i, conn } => {
+            DragTarget::NodeConnection {
+                node: node_i,
+                conn: conn_i,
+            } => {
                 if !matches!(self.model.phase, Phase::Setup) {
                     return;
                 }
                 let Some(node) = self.model.nodes.nodes.get_mut(node_i) else {
                     return;
                 };
-                let Some(conn) = node.connections.get_mut(conn) else {
+                let Some(conn) = node.connections.get_mut(conn_i) else {
                     return;
                 };
                 // Remove connection
                 if let Some(i) = conn.connected_to.take() {
-                    if let Some(node) = self.model.nodes.nodes.get_mut(i) {
-                        for conn in &mut node.connections {
-                            if conn.connected_to == Some(node_i) {
-                                conn.connected_to = None;
+                    if let Some(node) = self.model.nodes.nodes.get_mut(i.node) {
+                        if let Some(conn) = node.connections.get_mut(i.connection) {
+                            if conn.connected_to
+                                != Some(ConnectionId {
+                                    node: node_i,
+                                    connection: conn_i,
+                                })
+                            {
+                                log::error!(
+                                    "Invalid connection state between nodes {} and {}",
+                                    node_i,
+                                    i.node
+                                );
                             }
+                            conn.connected_to = None;
                         }
                     }
                 }
@@ -872,11 +895,44 @@ impl GameState {
                                 if let Some(to_node) = nodes.nodes.get_mut(to_node_i) {
                                     if let Some(to_conn) = to_node.connections.get_mut(to_conn_i) {
                                         if to_conn.kind == color {
-                                            to_conn.connected_to = Some(node_i);
+                                            // Set other connection
+                                            let mut connection = Some(ConnectionId {
+                                                node: node_i,
+                                                connection: conn_i,
+                                            });
+                                            std::mem::swap(
+                                                &mut to_conn.connected_to,
+                                                &mut connection,
+                                            );
+                                            if let Some(connection) = connection {
+                                                // Remove other old connection
+                                                if let Some(node) =
+                                                    nodes.nodes.get_mut(connection.node)
+                                                {
+                                                    if let Some(conn) = node
+                                                        .connections
+                                                        .get_mut(connection.connection)
+                                                    {
+                                                        conn.connected_to = None;
+                                                    }
+                                                }
+                                            }
+
+                                            // Confirm connection
                                             if let Some(node) = nodes.nodes.get_mut(node_i) {
                                                 if let Some(conn) = node.connections.get_mut(conn_i)
                                                 {
-                                                    conn.connected_to = Some(to_node_i);
+                                                    conn.connected_to = Some(ConnectionId {
+                                                        node: to_node_i,
+                                                        connection: to_conn_i,
+                                                    });
+                                                    log::debug!(
+                                                        "Connected ({}, {}) and ({}, {})",
+                                                        node_i,
+                                                        conn_i,
+                                                        to_node_i,
+                                                        to_conn_i
+                                                    );
                                                 }
                                             }
                                         }

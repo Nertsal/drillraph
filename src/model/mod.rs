@@ -115,6 +115,7 @@ pub enum ResourceKind {
     Gem,
 }
 
+#[derive(Debug, Clone)]
 pub struct Nodes {
     pub bounds: Aabb2<Coord>,
     pub camera: Camera2d,
@@ -132,7 +133,13 @@ pub struct Node {
 pub struct NodeConnection {
     pub offset: vec2<Coord>,
     pub kind: ConnectionKind,
-    pub connected_to: Option<usize>,
+    pub connected_to: Option<ConnectionId>,
+}
+
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Hash)]
+pub struct ConnectionId {
+    pub node: usize,
+    pub connection: usize,
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Hash)]
