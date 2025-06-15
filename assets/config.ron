@@ -3,6 +3,9 @@
     coal_fuel_value: 1.0,
     unpowered_node_dim: 0.5,
 
+    error_blink_duration: 2.0,
+    blink_frequency: 3.0,
+
     drill_size: 0.5,
     drill_speed: 2.5,
     drill_speed_0: 3.0,

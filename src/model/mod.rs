@@ -19,6 +19,10 @@ pub struct Config {
     pub coal_fuel_value: Fuel,
     /// How much to dim the node when it is not connected to power.
     pub unpowered_node_dim: f32,
+    /// For how long do the nodes blink to indicate an error.
+    pub error_blink_duration: FloatTime,
+    /// How fast do the nodes blink.
+    pub blink_frequency: FloatTime,
 
     pub drill_size: Coord,
     pub drill_speed: Coord,
@@ -131,6 +135,7 @@ pub struct Node {
     pub position: Aabb2<Coord>,
     pub kind: NodeKind,
     pub connections: Vec<NodeConnection>,
+    pub blink: Bounded<FloatTime>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -207,6 +212,14 @@ pub struct Drill {
     pub can_turn_right: bool,
 }
 
+#[derive(Debug, Clone)]
+pub enum DrillLaunchError {
+    WrongPhase,
+    NoFuel,
+    NoDrill,
+    DrillUnderpowered,
+}
+
 pub struct Model {
     pub context: Context,
     pub config: Config,
@@ -258,6 +271,7 @@ impl Model {
                 nodes: vec![
                     Node {
                         is_powered: false,
+                        blink: Bounded::new_max(r32(0.0)),
                         position: Aabb2::ZERO.extend_right(1.0).extend_down(1.0).as_r32(),
                         kind: NodeKind::Power,
                         connections: vec![
@@ -275,6 +289,7 @@ impl Model {
                     },
                     Node {
                         is_powered: false,
+                        blink: Bounded::new_max(r32(0.0)),
                         position: Aabb2::point(vec2(3.0, -2.0))
                             .extend_right(2.0)
                             .extend_down(1.0)
@@ -288,6 +303,7 @@ impl Model {
                     },
                     Node {
                         is_powered: false,
+                        blink: Bounded::new_max(r32(0.0)),
                         position: Aabb2::point(vec2(2.0, -6.0))
                             .extend_right(2.0)
                             .extend_down(1.0)
@@ -316,6 +332,7 @@ impl Model {
                     },
                     Node {
                         is_powered: false,
+                        blink: Bounded::new_max(r32(0.0)),
                         position: Aabb2::point(vec2(0.0, -10.0))
                             .extend_right(3.0)
                             .extend_up(1.0)

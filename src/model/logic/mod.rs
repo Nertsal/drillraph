@@ -2,6 +2,19 @@ mod generate;
 
 use super::*;
 
+impl Nodes {
+    pub fn find_all_nodes<'a>(
+        &'a self,
+        mut predicate: impl FnMut(&Node) -> bool + 'a,
+    ) -> impl Iterator<Item = usize> + 'a {
+        self.nodes
+            .iter()
+            .enumerate()
+            .filter(move |(_, node)| predicate(node))
+            .map(|(i, _)| i)
+    }
+}
+
 impl Model {
     pub fn update(&mut self, delta_time: FloatTime) {
         self.simulation_time += delta_time;
@@ -22,8 +35,10 @@ impl Model {
         self.process_particles(delta_time);
     }
 
-    pub fn launch_drill(&mut self) {
-        let Phase::Setup = self.phase else { return };
+    pub fn launch_drill(&mut self) -> Result<(), DrillLaunchError> {
+        let Phase::Setup = self.phase else {
+            return Err(DrillLaunchError::WrongPhase);
+        };
 
         // Check prerequisites
 
@@ -39,7 +54,7 @@ impl Model {
                     continue;
                 }
                 let Some(node) = self.nodes.nodes.get(i) else {
-                    return;
+                    continue;
                 };
                 match node.kind {
                     NodeKind::Fuel(..) => {
@@ -58,11 +73,11 @@ impl Model {
             }
             if !has_fuel {
                 log::debug!("Launch impossible: no fuel connected");
-                return;
+                return Err(DrillLaunchError::NoFuel);
             }
             if !has_drill {
                 log::debug!("Launch impossible: drill is not connected");
-                return;
+                return Err(DrillLaunchError::NoDrill);
             }
         }
 
@@ -75,13 +90,14 @@ impl Model {
             }
         }) {
             log::debug!("Launch impossible: drill does not have enough power");
-            return;
+            return Err(DrillLaunchError::DrillUnderpowered);
         }
 
         log::debug!("Launch the drill!");
         self.phase = Phase::Drill;
         self.drill.target_speed = self.config.drill_speed;
         self.context.assets.sounds.start.play();
+        Ok(())
     }
 
     pub fn start_sprint(&mut self, node_i: usize) {
@@ -163,6 +179,7 @@ impl Model {
         };
         self.nodes.nodes.push(Node {
             is_powered: false,
+            blink: Bounded::new_max(r32(0.0)),
             position,
             kind,
             connections: match item.item.node {
@@ -237,7 +254,7 @@ impl Model {
             upgrades
         };
 
-        // Find specific nodes, update power state, and tick cooldowns
+        // Find specific nodes, update power state, tick cooldowns, and blink
         let mut shop_i = 0;
         let mut drill_i = 0;
         let mut vision_i = None;
@@ -245,6 +262,7 @@ impl Model {
         let mut left_i = None;
         let mut right_i = None;
         for node_i in 0..self.nodes.nodes.len() {
+            // Power state
             let power = count_nodes(&self.nodes, node_i, CountNode::Power);
 
             let Some(node) = self.nodes.nodes.get_mut(node_i) else {
@@ -252,11 +270,16 @@ impl Model {
             };
             node.is_powered = power > 0;
 
+            // Blink
+            node.blink.change(-delta_time);
+
+            // Position
             let offset = (bounds.min - node.position.min).map(|x| x.max(Coord::ZERO));
             node.position = node.position.translate(offset);
             let offset = (bounds.max - node.position.max).map(|x| x.min(Coord::ZERO));
             node.position = node.position.translate(offset);
 
+            // Find nodes
             match node.kind {
                 NodeKind::Shop { .. } => shop_i = node_i,
                 NodeKind::Drill { .. } => drill_i = node_i,
@@ -267,6 +290,7 @@ impl Model {
                 _ => {}
             }
 
+            // Cooldown
             if let Phase::Drill = self.phase {
                 if let NodeKind::Sprint { cooldown } = &mut node.kind {
                     if self.drill.sprint.is_none() {

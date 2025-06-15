@@ -392,10 +392,22 @@ impl GameState {
             };
             let position = node.position.map_bounds(to_screen);
 
+            // Color
             let mut color = Color::WHITE;
             if !node.is_powered && !matches!(node.kind, NodeKind::Upgrade) {
                 color =
                     color.map_rgb(|x| x * (1.0 - self.context.assets.config.unpowered_node_dim));
+            }
+            if node.blink.is_above_min() {
+                let t = node.blink.max() - node.blink.value();
+                let blink = (t * self.context.assets.config.blink_frequency)
+                    .floor()
+                    .as_f32() as isize
+                    % 2
+                    == 0;
+                if blink {
+                    color.r *= 2.0;
+                }
             }
 
             let position = self.util.draw_texture_pp(
@@ -811,7 +823,9 @@ impl GameState {
                 match node.kind {
                     NodeKind::Power => {
                         // Cannot drag the power node - launch the drill instead
-                        self.model.launch_drill();
+                        if let Err(err) = self.model.launch_drill() {
+                            self.handle_launch_error(err);
+                        }
                         return;
                     }
                     NodeKind::Shop { .. } => {
@@ -1018,6 +1032,42 @@ impl GameState {
             }
         }
     }
+
+    fn handle_launch_error(&mut self, error: DrillLaunchError) {
+        self.context.assets.sounds.stop.play();
+        match error {
+            DrillLaunchError::WrongPhase => {
+                // Should be pretty obvious by itself
+            }
+            DrillLaunchError::NoFuel => {
+                // Blink fuel node
+                let nodes: Vec<_> = self
+                    .model
+                    .nodes
+                    .find_all_nodes(|node| matches!(node.kind, NodeKind::Fuel(..)))
+                    .collect();
+                self.blink_nodes(nodes);
+            }
+            DrillLaunchError::NoDrill | DrillLaunchError::DrillUnderpowered => {
+                // Blink drill node
+                let nodes: Vec<_> = self
+                    .model
+                    .nodes
+                    .find_all_nodes(|node| matches!(node.kind, NodeKind::Drill { .. }))
+                    .collect();
+                self.blink_nodes(nodes);
+            }
+        }
+    }
+
+    fn blink_nodes(&mut self, nodes: Vec<usize>) {
+        for i in nodes {
+            let Some(node) = self.model.nodes.nodes.get_mut(i) else {
+                continue;
+            };
+            node.blink = Bounded::new_max(self.context.assets.config.error_blink_duration);
+        }
+    }
 }
 
 impl geng::State for GameState {
@@ -1036,7 +1086,9 @@ impl geng::State for GameState {
     fn handle_event(&mut self, event: geng::Event) {
         let controls = &self.context.assets.controls;
         if geng_utils::key::is_event_press(&event, &controls.launch) {
-            self.model.launch_drill();
+            if let Err(err) = self.model.launch_drill() {
+                self.handle_launch_error(err);
+            }
         }
 
         match event {
