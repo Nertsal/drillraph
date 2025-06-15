@@ -28,7 +28,7 @@
             generation: [],
         ),
         Resource(Coal): (
-            value: 1000,
+            value: 1,
             generation: [
                 (
                     range: (-20, -1),
@@ -91,7 +91,7 @@
     },
 
     shop_0: (
-        slots: 2,
+        slots: 6,
         items: [
             (
                 cost: 10,
@@ -113,7 +113,7 @@
     ),
 
     shop_1: (
-        slots: 3,
+        slots: 6,
         items: [
             (
                 cost: 100,
@@ -139,7 +139,7 @@
     ),
 
     shop_2: (
-        slots: 4,
+        slots: 6,
         items: [
             (
                 cost: 500,
