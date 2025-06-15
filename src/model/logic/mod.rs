@@ -302,18 +302,19 @@ impl Model {
 
         // Update vision level
         if let Some(vision_i) = vision_i {
-            if count_nodes(&self.nodes, vision_i, CountNode::Power) > 0 {
-                let vision_upgrades = count_nodes(&self.nodes, vision_i, CountNode::Upgrade);
-                if let Some(node) = self.nodes.nodes.get_mut(vision_i) {
-                    if let NodeKind::Vision { level } = &mut node.kind {
-                        *level = vision_upgrades;
-                        self.drill.vision_radius = match *level {
-                            0 => self.config.vision_0,
-                            1 => self.config.vision_1,
-                            _ => self.config.vision_2,
-                        };
-                    }
+            let vision_upgrades = count_nodes(&self.nodes, vision_i, CountNode::Upgrade);
+            if let Some(node) = self.nodes.nodes.get_mut(vision_i) {
+                if let NodeKind::Vision { level } = &mut node.kind {
+                    *level = vision_upgrades;
                 }
+            }
+
+            if count_nodes(&self.nodes, vision_i, CountNode::Power) > 0 {
+                self.drill.vision_radius = match vision_upgrades {
+                    0 => self.config.vision_0,
+                    1 => self.config.vision_1,
+                    _ => self.config.vision_2,
+                };
             } else {
                 self.drill.vision_radius = self.config.vision;
             }
@@ -323,18 +324,19 @@ impl Model {
 
         // Update speed level
         if let Some(speed_i) = speed_i {
-            if count_nodes(&self.nodes, speed_i, CountNode::Power) > 0 {
-                let speed_upgrades = count_nodes(&self.nodes, speed_i, CountNode::Upgrade);
-                if let Some(node) = self.nodes.nodes.get_mut(speed_i) {
-                    if let NodeKind::Speed { level } = &mut node.kind {
-                        *level = speed_upgrades;
-                        self.drill.max_speed = match *level {
-                            0 => self.config.drill_speed_0,
-                            1 => self.config.drill_speed_1,
-                            _ => self.config.drill_speed_2,
-                        };
-                    }
+            let speed_upgrades = count_nodes(&self.nodes, speed_i, CountNode::Upgrade);
+            if let Some(node) = self.nodes.nodes.get_mut(speed_i) {
+                if let NodeKind::Speed { level } = &mut node.kind {
+                    *level = speed_upgrades;
                 }
+            }
+
+            if count_nodes(&self.nodes, speed_i, CountNode::Power) > 0 {
+                self.drill.max_speed = match speed_upgrades {
+                    0 => self.config.drill_speed_0,
+                    1 => self.config.drill_speed_1,
+                    _ => self.config.drill_speed_2,
+                };
             } else {
                 self.drill.max_speed = self.config.drill_speed;
             }

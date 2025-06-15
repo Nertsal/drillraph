@@ -393,7 +393,7 @@ impl GameState {
             let position = node.position.map_bounds(to_screen);
 
             let mut color = Color::WHITE;
-            if !node.is_powered {
+            if !node.is_powered && !matches!(node.kind, NodeKind::Upgrade) {
                 color =
                     color.map_rgb(|x| x * (1.0 - self.context.assets.config.unpowered_node_dim));
             }
