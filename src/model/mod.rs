@@ -141,7 +141,6 @@ pub enum ConnectionKind {
     Fuel,
     Upgrade,
     Drill,
-    Modifier,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

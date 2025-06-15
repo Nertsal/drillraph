@@ -28,7 +28,7 @@
             generation: [],
         ),
         Resource(Coal): (
-            value: 1,
+            value: 1000,
             generation: [
                 (
                     range: (-20, -1),

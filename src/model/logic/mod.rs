@@ -169,7 +169,7 @@ impl Model {
                 }
                 ShopNode::TurnLeft | ShopNode::TurnRight => mk_cons(&[
                     ((0.0, 0.5), ConnectionKind::Normal),
-                    ((0.5, 1.0), ConnectionKind::Modifier),
+                    ((0.5, 1.0), ConnectionKind::Drill),
                     ((1.0, 0.5), ConnectionKind::Normal),
                 ]),
                 ShopNode::Battery | ShopNode::Sprint => mk_cons(&[
@@ -181,7 +181,7 @@ impl Model {
                     ((0.5, 1.0), ConnectionKind::Upgrade),
                 ]),
                 ShopNode::Speed | ShopNode::Light => mk_cons(&[
-                    ((0.0, 0.5), ConnectionKind::Modifier),
+                    ((0.0, 0.5), ConnectionKind::Drill),
                     ((0.5, 1.0), ConnectionKind::Upgrade),
                     ((1.0, 0.5), ConnectionKind::Fuel),
                 ]),
