@@ -162,6 +162,7 @@ impl Model {
                 .collect::<Vec<_>>()
         };
         self.nodes.nodes.push(Node {
+            is_powered: false,
             position,
             kind,
             connections: match item.item.node {
@@ -201,38 +202,8 @@ impl Model {
 
     fn update_nodes(&mut self, delta_time: FloatTime) {
         let bounds = self.nodes.bounds;
-        let mut shop_i = 0;
-        let mut drill_i = 0;
-        let mut vision_i = None;
-        let mut speed_i = None;
-        let mut left_i = None;
-        let mut right_i = None;
-        for (node_i, node) in self.nodes.nodes.iter_mut().enumerate() {
-            let offset = (bounds.min - node.position.min).map(|x| x.max(Coord::ZERO));
-            node.position = node.position.translate(offset);
-            let offset = (bounds.max - node.position.max).map(|x| x.min(Coord::ZERO));
-            node.position = node.position.translate(offset);
 
-            match node.kind {
-                NodeKind::Shop { .. } => shop_i = node_i,
-                NodeKind::Drill { .. } => drill_i = node_i,
-                NodeKind::Vision { .. } => vision_i = Some(node_i),
-                NodeKind::Speed { .. } => speed_i = Some(node_i),
-                NodeKind::TurnLeft => left_i = Some(node_i),
-                NodeKind::TurnRight => right_i = Some(node_i),
-                _ => {}
-            }
-
-            if let Phase::Drill = self.phase {
-                if let NodeKind::Sprint { cooldown } = &mut node.kind {
-                    if self.drill.sprint.is_none() {
-                        cooldown.change(-delta_time);
-                    }
-                }
-            }
-        }
-
-        // Count upgrades
+        // Count connected upgrades
         enum CountNode {
             Power,
             Upgrade,
@@ -265,6 +236,45 @@ impl Model {
             }
             upgrades
         };
+
+        // Find specific nodes, update power state, and tick cooldowns
+        let mut shop_i = 0;
+        let mut drill_i = 0;
+        let mut vision_i = None;
+        let mut speed_i = None;
+        let mut left_i = None;
+        let mut right_i = None;
+        for node_i in 0..self.nodes.nodes.len() {
+            let power = count_nodes(&self.nodes, node_i, CountNode::Power);
+
+            let Some(node) = self.nodes.nodes.get_mut(node_i) else {
+                continue;
+            };
+            node.is_powered = power > 0;
+
+            let offset = (bounds.min - node.position.min).map(|x| x.max(Coord::ZERO));
+            node.position = node.position.translate(offset);
+            let offset = (bounds.max - node.position.max).map(|x| x.min(Coord::ZERO));
+            node.position = node.position.translate(offset);
+
+            match node.kind {
+                NodeKind::Shop { .. } => shop_i = node_i,
+                NodeKind::Drill { .. } => drill_i = node_i,
+                NodeKind::Vision { .. } => vision_i = Some(node_i),
+                NodeKind::Speed { .. } => speed_i = Some(node_i),
+                NodeKind::TurnLeft => left_i = Some(node_i),
+                NodeKind::TurnRight => right_i = Some(node_i),
+                _ => {}
+            }
+
+            if let Phase::Drill = self.phase {
+                if let NodeKind::Sprint { cooldown } = &mut node.kind {
+                    if self.drill.sprint.is_none() {
+                        cooldown.change(-delta_time);
+                    }
+                }
+            }
+        }
 
         // Update shop level
         let shop_upgrades = count_nodes(&self.nodes, shop_i, CountNode::Upgrade);

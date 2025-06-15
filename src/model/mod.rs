@@ -17,6 +17,8 @@ pub type Fuel = R32;
 pub struct Config {
     pub map_width: Coord,
     pub coal_fuel_value: Fuel,
+    /// How much to dim the node when it is not connected to power.
+    pub unpowered_node_dim: f32,
 
     pub drill_size: Coord,
     pub drill_speed: Coord,
@@ -124,6 +126,8 @@ pub struct Nodes {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Node {
+    /// Whether the node is connected to power.
+    pub is_powered: bool,
     pub position: Aabb2<Coord>,
     pub kind: NodeKind,
     pub connections: Vec<NodeConnection>,
@@ -253,6 +257,7 @@ impl Model {
                 },
                 nodes: vec![
                     Node {
+                        is_powered: false,
                         position: Aabb2::ZERO.extend_right(1.0).extend_down(1.0).as_r32(),
                         kind: NodeKind::Power,
                         connections: vec![
@@ -269,6 +274,7 @@ impl Model {
                         ],
                     },
                     Node {
+                        is_powered: false,
                         position: Aabb2::point(vec2(3.0, -2.0))
                             .extend_right(2.0)
                             .extend_down(1.0)
@@ -281,6 +287,7 @@ impl Model {
                         }],
                     },
                     Node {
+                        is_powered: false,
                         position: Aabb2::point(vec2(2.0, -6.0))
                             .extend_right(2.0)
                             .extend_down(1.0)
@@ -308,6 +315,7 @@ impl Model {
                         ],
                     },
                     Node {
+                        is_powered: false,
                         position: Aabb2::point(vec2(0.0, -10.0))
                             .extend_right(3.0)
                             .extend_up(1.0)

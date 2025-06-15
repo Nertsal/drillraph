@@ -391,13 +391,20 @@ impl GameState {
                 NodeKind::CoalFuel(..) => &sprites.coal_fuel_node,
             };
             let position = node.position.map_bounds(to_screen);
+
+            let mut color = Color::WHITE;
+            if !node.is_powered {
+                color =
+                    color.map_rgb(|x| x * (1.0 - self.context.assets.config.unpowered_node_dim));
+            }
+
             let position = self.util.draw_texture_pp(
                 texture,
                 position.center(),
                 vec2(0.5, 0.5),
                 Angle::ZERO,
                 pixel_scale,
-                Color::WHITE,
+                color,
                 &geng::PixelPerfectCamera,
                 framebuffer,
             );

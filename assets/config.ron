@@ -1,6 +1,7 @@
 (
     map_width: 15.0,
     coal_fuel_value: 1.0,
+    unpowered_node_dim: 0.5,
 
     drill_size: 0.5,
     drill_speed: 2.5,
